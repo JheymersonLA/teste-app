@@ -21,7 +21,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
+import { Button, buttonVariants } from './ui/button';
 import { ArrowDown, ArrowUp, ChartLine, Trash } from 'phosphor-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -137,7 +137,7 @@ export function PerformanceHistoryTable({ records }: PerformanceHistoryTableProp
                 </TableCell>
                 <TableCell className="text-center">
                   {isTrade ? (
-                    <Badge variant={winRate >= 50 ? 'default' : 'destructive'} className={winRate >= 50 ? 'bg-green-500/20 text-green-700 border-green-500/30 hover:bg-green-500/30 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20' : 'bg-red-500/20 text-red-700 border-red-500/30 hover:bg-red-500/30 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20'}>
+                    <Badge variant={winRate >= 50 ? 'default' : 'destructive'} className={cn(winRate >= 50 ? 'bg-green-500/20 text-green-700 border-green-500/30 hover:bg-green-500/30 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20' : 'bg-red-500/20 text-red-700 border-red-500/30 hover:bg-red-500/30 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20')}>
                       {winRate.toFixed(1)}%
                     </Badge>
                   ) : (
@@ -161,7 +161,10 @@ export function PerformanceHistoryTable({ records }: PerformanceHistoryTableProp
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDelete(record.id)}>
+                        <AlertDialogAction 
+                          onClick={() => handleDelete(record.id)}
+                          className={cn(buttonVariants({ variant: "destructive" }))}
+                        >
                           Deletar
                         </AlertDialogAction>
                       </AlertDialogFooter>
