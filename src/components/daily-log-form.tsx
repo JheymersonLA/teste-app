@@ -149,7 +149,7 @@ export function DailyLogForm() {
                                         type="button"
                                         variant={resultTypeField.value === 'gain' ? 'default' : 'outline'}
                                         onClick={() => resultTypeField.onChange('gain')}
-                                        className={cn(resultTypeField.value === 'gain' ? 'bg-green-600 hover:bg-green-700' : '', 'h-9')}
+                                        className={cn(resultTypeField.value === 'gain' ? 'bg-green-600 hover:bg-green-700' : 'hover:bg-green-600/90 hover:text-primary-foreground', 'h-9')}
                                     >
                                         Ganho
                                     </Button>
@@ -157,7 +157,7 @@ export function DailyLogForm() {
                                         type="button"
                                         variant={resultTypeField.value === 'loss' ? 'destructive' : 'outline'}
                                         onClick={() => resultTypeField.onChange('loss')}
-                                        className="h-9"
+                                        className={cn(resultTypeField.value === 'loss' ? '' : 'hover:bg-red-600/90 hover:text-destructive-foreground', 'h-9')}
                                     >
                                         Perda
                                     </Button>

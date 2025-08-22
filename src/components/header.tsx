@@ -4,11 +4,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { List, ChartLineUp, SignOut } from 'phosphor-react';
+import { List, ChartLineUp } from 'phosphor-react';
 import { cn } from '@/lib/utils';
 import { SettingsDialog } from './settings-dialog';
 import { ThemeToggle } from './theme-toggle';
-import { useTrade } from '@/context/trade-data-provider';
 
 const navLinks = [
   { href: '/dashboard', label: 'Dashboard' },
@@ -18,7 +17,6 @@ const navLinks = [
 
 export function Header() {
   const pathname = usePathname();
-  const { resetData } = useTrade();
 
   return (
     <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm md:px-6">
@@ -81,9 +79,6 @@ export function Header() {
       <div className="flex w-full items-center justify-end gap-2 md:ml-auto">
         <ThemeToggle />
         <SettingsDialog />
-        <Button variant="ghost" size="icon" onClick={resetData} aria-label="Sair do sistema">
-            <SignOut className="h-5 w-5 text-muted-foreground" />
-        </Button>
       </div>
     </header>
   );
