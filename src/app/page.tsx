@@ -2,7 +2,7 @@
 
 import { useTrade } from '@/context/trade-data-provider';
 import { Setup } from '@/components/setup';
-import { Loader2 } from 'lucide-react';
+import { Spinner } from 'phosphor-react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -20,7 +20,7 @@ export default function Home() {
   if (isLoading || settings) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <Spinner className="h-12 w-12 animate-spin text-primary" />
         <p className="mt-4 text-muted-foreground">Carregando...</p>
       </div>
     );

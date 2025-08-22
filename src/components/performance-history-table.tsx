@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import { Trash2 } from 'lucide-react';
+import { Trash } from 'phosphor-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from './ui/badge';
@@ -84,7 +84,7 @@ export function PerformanceHistoryTable() {
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="ghost" size="icon">
-                        <Trash2 className="h-4 w-4 text-muted-foreground" />
+                        <Trash className="h-4 w-4 text-muted-foreground" />
                         <span className="sr-only">Deletar</span>
                       </Button>
                     </AlertDialogTrigger>

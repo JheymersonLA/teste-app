@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, Bot } from 'lucide-react';
+import { List, ChartLineUp } from 'phosphor-react';
 import { cn } from '@/lib/utils';
 import { SettingsDialog } from './settings-dialog';
 import { ThemeToggle } from './theme-toggle';
@@ -25,7 +25,7 @@ export function Header() {
           href="/dashboard"
           className="flex items-center gap-2 text-lg font-semibold md:text-base"
         >
-          <Bot className="h-6 w-6 text-primary" />
+          <ChartLineUp weight="fill" className="h-6 w-6 text-primary" />
           <span className="sr-only">TradeFlow</span>
         </Link>
         {navLinks.map((link) => (
@@ -48,7 +48,7 @@ export function Header() {
             size="icon"
             className="shrink-0 md:hidden"
           >
-            <Menu className="h-5 w-5" />
+            <List className="h-5 w-5" />
             <span className="sr-only">Abrir menu de navegação</span>
           </Button>
         </SheetTrigger>
@@ -58,7 +58,7 @@ export function Header() {
               href="/dashboard"
               className="flex items-center gap-2 text-lg font-semibold"
             >
-              <Bot className="h-6 w-6 text-primary" />
+              <ChartLineUp weight="fill" className="h-6 w-6 text-primary" />
               <span className="sr-only">TradeFlow</span>
             </Link>
             {navLinks.map((link) => (

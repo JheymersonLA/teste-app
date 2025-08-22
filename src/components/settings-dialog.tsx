@@ -27,7 +27,7 @@ import {
   } from "@/components/ui/alert-dialog"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useTrade } from '@/context/trade-data-provider';
-import { Settings, Trash2 } from 'lucide-react';
+import { Gear, Trash } from 'phosphor-react';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -68,7 +68,7 @@ export function SettingsDialog() {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon">
-          <Settings className="h-5 w-5" />
+          <Gear className="h-5 w-5" />
           <span className="sr-only">Configurações</span>
         </Button>
       </DialogTrigger>
@@ -124,7 +124,7 @@ export function SettingsDialog() {
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
                         <Button variant="destructive" type="button">
-                            <Trash2 className="mr-2 h-4 w-4" />
+                            <Trash className="mr-2 h-4 w-4" />
                             Resetar Dados
                         </Button>
                     </AlertDialogTrigger>
