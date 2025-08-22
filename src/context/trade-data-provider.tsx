@@ -11,13 +11,15 @@ import React,
   useMemo,
 } from 'react';
 import type { DailyRecord, UserSettings } from '@/lib/types';
+import { db } from '@/lib/firebase';
+import { collection, doc, getDoc, getDocs, setDoc, deleteDoc, writeBatch } from "firebase/firestore";
 
 interface TradeDataContextType {
   settings: UserSettings | null;
   records: DailyRecord[];
   isLoading: boolean;
   saveSettings: (settings: UserSettings) => void;
-  addRecord: (record: Omit<DailyRecord, 'id'>) => boolean;
+  addRecord: (record: Omit<DailyRecord, 'id'>) => Promise<boolean>;
   deleteRecord: (id: string) => void;
   resetData: () => void;
   currentBank: number;
@@ -26,8 +28,7 @@ interface TradeDataContextType {
 
 const TradeDataContext = createContext<TradeDataContextType | undefined>(undefined);
 
-const SETTINGS_KEY = 'tradeflow_settings';
-const RECORDS_KEY = 'tradeflow_records';
+const SETTINGS_DOC_ID = 'main_settings';
 
 export function TradeDataProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<UserSettings | null>(null);
@@ -35,50 +36,100 @@ export function TradeDataProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch settings
+        const settingsDocRef = doc(db, "settings", SETTINGS_DOC_ID);
+        const settingsSnap = await getDoc(settingsDocRef);
+        if (settingsSnap.exists()) {
+          setSettings(settingsSnap.data() as UserSettings);
+        }
+
+        // Fetch records
+        const recordsCollectionRef = collection(db, "records");
+        const recordsSnap = await getDocs(recordsCollectionRef);
+        const recordsData = recordsSnap.docs.map(doc => doc.data() as DailyRecord);
+        recordsData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setRecords(recordsData);
+
+      } catch (error) {
+        console.error("Failed to load data from Firestore", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  const saveSettings = useCallback(async (newSettings: UserSettings) => {
     try {
-      const savedSettings = localStorage.getItem(SETTINGS_KEY);
-      const savedRecords = localStorage.getItem(RECORDS_KEY);
-
-      if (savedSettings) {
-        setSettings(JSON.parse(savedSettings));
-      }
-      if (savedRecords) {
-        setRecords(JSON.parse(savedRecords).sort((a: DailyRecord, b: DailyRecord) => new Date(b.date).getTime() - new Date(a.date).getTime()));
-      }
+      const settingsDocRef = doc(db, "settings", SETTINGS_DOC_ID);
+      await setDoc(settingsDocRef, newSettings);
+      setSettings(newSettings);
     } catch (error) {
-      console.error("Failed to load data from localStorage", error);
+      console.error("Failed to save settings to Firestore", error);
+    }
+  }, []);
+
+  const addRecord = useCallback(async (newRecord: Omit<DailyRecord, 'id'>): Promise<boolean> => {
+    const recordId = newRecord.date;
+    const recordDocRef = doc(db, "records", recordId);
+
+    try {
+        const docSnap = await getDoc(recordDocRef);
+        if (docSnap.exists()) {
+            console.warn("Record for this date already exists");
+            return false; 
+        }
+
+        const recordWithId = { ...newRecord, id: recordId };
+        await setDoc(recordDocRef, recordWithId);
+
+        setRecords(prevRecords => 
+            [...prevRecords, recordWithId].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        );
+        return true;
+    } catch (error) {
+        console.error("Failed to add record to Firestore", error);
+        return false;
+    }
+  }, []);
+
+  const deleteRecord = useCallback(async (id: string) => {
+    try {
+      const recordDocRef = doc(db, "records", id);
+      await deleteDoc(recordDocRef);
+      setRecords(prevRecords => prevRecords.filter((record) => record.id !== id));
+    } catch (error) {
+      console.error("Failed to delete record from Firestore", error);
+    }
+  }, []);
+
+  const resetData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      // Delete all records
+      const recordsCollectionRef = collection(db, "records");
+      const recordsSnap = await getDocs(recordsCollectionRef);
+      const batch = writeBatch(db);
+      recordsSnap.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+
+      // Delete settings
+      const settingsDocRef = doc(db, "settings", SETTINGS_DOC_ID);
+      await deleteDoc(settingsDocRef);
+      
+      setSettings(null);
+      setRecords([]);
+
+    } catch (error) {
+      console.error("Failed to reset data in Firestore", error);
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
-  }, []);
-
-  const saveSettings = useCallback((newSettings: UserSettings) => {
-    setSettings(newSettings);
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings));
-  }, []);
-
-  const addRecord = useCallback((newRecord: Omit<DailyRecord, 'id'>): boolean => {
-    if (records.some(r => r.id === newRecord.date)) {
-      return false; // Record for this date already exists
-    }
-    const recordWithId = { ...newRecord, id: newRecord.date };
-    const updatedRecords = [...records, recordWithId].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    setRecords(updatedRecords);
-    localStorage.setItem(RECORDS_KEY, JSON.stringify(updatedRecords));
-    return true;
-  }, [records]);
-
-  const deleteRecord = useCallback((id: string) => {
-    const updatedRecords = records.filter((record) => record.id !== id);
-    setRecords(updatedRecords);
-    localStorage.setItem(RECORDS_KEY, JSON.stringify(updatedRecords));
-  }, [records]);
-
-  const resetData = useCallback(() => {
-    setSettings(null);
-    setRecords([]);
-    localStorage.removeItem(SETTINGS_KEY);
-    localStorage.removeItem(RECORDS_KEY);
   }, []);
 
   const currentBank = useMemo(() => {

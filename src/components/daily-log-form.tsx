@@ -45,8 +45,8 @@ export function DailyLogForm() {
     }
   });
 
-  function onSubmit(data: LogFormValues) {
-    const success = addRecord({
+  async function onSubmit(data: LogFormValues) {
+    const success = await addRecord({
         ...data,
         date: data.date.toISOString(),
     });
