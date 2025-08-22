@@ -1,15 +1,20 @@
+
 'use client';
 
-import { useTrade } from '@/context/trade-data-provider';
 import { useMemo } from 'react';
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import type { DailyRecord } from '@/lib/types';
 
-export function TradeCalendar() {
-  const { records } = useTrade();
+
+interface TradeCalendarProps {
+    records: DailyRecord[];
+}
+
+export function TradeCalendar({ records }: TradeCalendarProps) {
 
   const modifiers = useMemo(() => {
     const gainDays: Date[] = [];

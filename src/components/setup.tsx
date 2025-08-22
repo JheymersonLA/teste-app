@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -7,8 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useTrade } from '@/context/trade-data-provider';
 import { ChartLineUp } from 'phosphor-react';
+import { saveSettings } from '@/app/actions/trade-actions';
+import { useRouter } from 'next/navigation';
 
 const setupSchema = z.object({
   initialBank: z.coerce.number().positive({ message: 'O valor deve ser positivo.' }),
@@ -19,7 +21,7 @@ const setupSchema = z.object({
 type SetupFormValues = z.infer<typeof setupSchema>;
 
 export function Setup() {
-  const { saveSettings } = useTrade();
+  const router = useRouter();
 
   const form = useForm<SetupFormValues>({
     resolver: zodResolver(setupSchema),
@@ -30,8 +32,10 @@ export function Setup() {
     },
   });
 
-  function onSubmit(data: SetupFormValues) {
-    saveSettings(data);
+  async function onSubmit(data: SetupFormValues) {
+    await saveSettings(data);
+    router.push('/dashboard');
+    router.refresh(); // Ensure the layout re-renders with the new settings state
   }
 
   return (

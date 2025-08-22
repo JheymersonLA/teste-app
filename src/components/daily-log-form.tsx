@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -6,22 +7,23 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useTrade } from '@/context/trade-data-provider';
 import { Calendar as CalendarIcon, PlusCircle } from 'phosphor-react';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
-import { format } from 'date-fns';
+import { format, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from './ui/separator';
+import { addRecord } from '@/app/actions/trade-actions';
+import { useRouter } from 'next/navigation';
 
 const logSchema = z.object({
     date: z.date({
       required_error: 'A data é obrigatória.',
     }),
     resultType: z.enum(['gain', 'loss'], { required_error: 'Selecione Ganho ou Perda.' }),
-    resultValue: z.coerce.number().min(0, { message: 'O valor deve ser positivo.' }),
+    resultValue: z.coerce.number().min(0.01, { message: 'O valor deve ser maior que zero.' }),
     entries: z.coerce.number().int().min(1, { message: 'Deve ser pelo menos 1.' }),
     wins: z.coerce.number().int().min(0, { message: 'Deve ser um número positivo.' }),
     losses: z.coerce.number().int().min(0, { message: 'Deve ser um número positivo.' }),
@@ -33,8 +35,8 @@ const logSchema = z.object({
 type LogFormValues = z.infer<typeof logSchema>;
 
 export function DailyLogForm() {
-  const { addRecord } = useTrade();
   const { toast } = useToast();
+  const router = useRouter();
 
   const form = useForm<LogFormValues>({
     resolver: zodResolver(logSchema),
@@ -53,7 +55,7 @@ export function DailyLogForm() {
 
     const result = await addRecord({
         type: 'trade',
-        date: data.date.toISOString(),
+        date: startOfDay(data.date).toISOString(),
         returnValue: returnValue,
         entries: data.entries,
         wins: data.wins,
@@ -73,6 +75,7 @@ export function DailyLogForm() {
             wins: 0,
             losses: 0,
         });
+        router.refresh();
     } else {
         toast({
             variant: "destructive",

@@ -1,6 +1,6 @@
+
 'use client';
 
-import { useTrade } from '@/context/trade-data-provider';
 import {
   Table,
   TableBody,
@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { useMemo } from 'react';
 import { addDays, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import type { UserSettings } from '@/lib/types';
 
 interface ProjectionData {
     day: number;
@@ -21,12 +22,13 @@ interface ProjectionData {
     dailyProfit: number;
 }
 
-export function ProjectionTable() {
-  const { settings, currentBank } = useTrade();
+interface ProjectionTableProps {
+    settings: UserSettings;
+    currentBank: number;
+}
 
+export function ProjectionTable({ settings, currentBank }: ProjectionTableProps) {
   const projectionData: ProjectionData[] = useMemo(() => {
-    if (!settings) return [];
-
     const data: ProjectionData[] = [];
     let projectedBank = currentBank;
     const dailyProfitTarget = settings.dailyProfitTarget / 100;
@@ -45,20 +47,6 @@ export function ProjectionTable() {
 
     return data;
   }, [settings, currentBank]);
-
-  if (!settings) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Projeção de Ganhos</CardTitle>
-          <CardDescription>Configure suas metas para ver a projeção.</CardDescription>
-        </CardHeader>
-        <CardContent className="h-40 flex items-center justify-center">
-          <p className="text-muted-foreground">Vá para o dashboard e defina suas configurações.</p>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card>

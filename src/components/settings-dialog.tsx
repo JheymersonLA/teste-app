@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -13,7 +14,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose,
 } from '@/components/ui/dialog';
 import {
     AlertDialog,
@@ -27,12 +27,13 @@ import {
     AlertDialogTrigger,
   } from "@/components/ui/alert-dialog"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useTrade } from '@/context/trade-data-provider';
 import { Gear, Trash } from 'phosphor-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from './ui/separator';
-
+import type { UserSettings } from '@/lib/types';
+import { useRouter } from 'next/navigation';
+import { resetData, saveSettings } from '@/app/actions/trade-actions';
 
 const settingsSchema = z.object({
   initialBank: z.coerce.number().positive({ message: 'O valor deve ser positivo.' }),
@@ -42,23 +43,44 @@ const settingsSchema = z.object({
 
 type SettingsFormValues = z.infer<typeof settingsSchema>;
 
-export function SettingsDialog() {
-  const { settings, saveSettings, resetData } = useTrade();
+interface SettingsDialogProps {
+    settings: UserSettings | null;
+}
+
+export function SettingsDialog({ settings }: SettingsDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
 
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
-    values: settings || undefined,
+    defaultValues: settings || {
+        initialBank: 1000,
+        dailyEntryTarget: 5,
+        dailyProfitTarget: 10
+    },
   });
 
-  function onSubmit(data: SettingsFormValues) {
-    saveSettings(data);
+  useEffect(() => {
+    if (settings) {
+        form.reset(settings);
+    }
+  }, [settings, form, isOpen])
+
+  async function onSubmit(data: SettingsFormValues) {
+    await saveSettings(data);
     toast({
         title: "Sucesso!",
         description: "Suas configurações foram salvas.",
       })
     setIsOpen(false);
+    router.refresh();
+  }
+
+  async function handleReset() {
+    await resetData();
+    setIsOpen(false);
+    router.refresh();
   }
 
   return (
@@ -146,10 +168,7 @@ export function SettingsDialog() {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                     <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => {
-                        resetData();
-                        setIsOpen(false);
-                    }}>
+                    <AlertDialogAction onClick={handleReset}>
                         Sim, resetar dados
                     </AlertDialogAction>
                     </AlertDialogFooter>

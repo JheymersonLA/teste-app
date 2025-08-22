@@ -1,6 +1,6 @@
+
 'use client';
 
-import { useTrade } from '@/context/trade-data-provider';
 import {
   Table,
   TableBody,
@@ -28,6 +28,13 @@ import { ptBR } from 'date-fns/locale';
 import { Badge } from './ui/badge';
 import { cn } from '@/lib/utils';
 import type { DailyRecord } from '@/lib/types';
+import { deleteRecord } from '@/app/actions/trade-actions';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
+
+interface PerformanceHistoryTableProps {
+    records: DailyRecord[];
+}
 
 
 const TypeIndicator = ({ type }: { type: DailyRecord['type'] }) => {
@@ -42,8 +49,26 @@ const TypeIndicator = ({ type }: { type: DailyRecord['type'] }) => {
   }
 }
 
-export function PerformanceHistoryTable() {
-  const { records, deleteRecord } = useTrade();
+export function PerformanceHistoryTable({ records }: PerformanceHistoryTableProps) {
+  const router = useRouter();
+  const { toast } = useToast();
+  
+  const handleDelete = async (id: string) => {
+    const result = await deleteRecord(id);
+    if(result.success) {
+        toast({
+            title: "Registro deletado!",
+            description: "O registro foi removido com sucesso.",
+        });
+        router.refresh();
+    } else {
+        toast({
+            variant: "destructive",
+            title: "Erro",
+            description: result.message || "Não foi possível deletar o registro.",
+        });
+    }
+  }
 
   if (records.length === 0) {
     return (
@@ -58,8 +83,6 @@ export function PerformanceHistoryTable() {
       </Card>
     );
   }
-
-  const sortedRecords = [...records].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
     <Card>
@@ -79,7 +102,7 @@ export function PerformanceHistoryTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedRecords.map((record) => {
+            {records.map((record) => {
               const isTrade = record.type === 'trade';
               const winRate = isTrade && record.entries && record.entries > 0 ? (record.wins! / record.entries) * 100 : 0;
               
@@ -138,7 +161,7 @@ export function PerformanceHistoryTable() {
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => deleteRecord(record.id)}>
+                        <AlertDialogAction onClick={() => handleDelete(record.id)}>
                           Deletar
                         </AlertDialogAction>
                       </AlertDialogFooter>

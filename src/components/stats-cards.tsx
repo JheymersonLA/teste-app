@@ -1,14 +1,20 @@
+
 'use client';
 
-import { useTrade } from '@/context/trade-data-provider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bank, Crosshair, TrendUp, Percent, Spinner } from 'phosphor-react';
 import { useState, useEffect } from 'react';
+import type { UserSettings } from '@/lib/types';
 
-export function StatsCards() {
-  const { settings, currentBank, winRate } = useTrade();
+interface StatsCardsProps {
+    settings: UserSettings;
+    currentBank: number;
+    winRate: number;
+}
+
+export function StatsCards({ settings, currentBank, winRate }: StatsCardsProps) {
   const [exchangeRate, setExchangeRate] = useState<number | null>(null);
-  const [isLoadingRate, setIsLoadingRate] = useState(false);
+  const [isLoadingRate, setIsLoadingRate] = useState(true);
 
   useEffect(() => {
     async function fetchExchangeRate() {

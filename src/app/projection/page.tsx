@@ -1,21 +1,19 @@
 
-'use client';
-
 import { ProjectionTable } from '@/components/projection-table';
-import { useTrade } from '@/context/trade-data-provider';
+import { loadData } from '@/lib/data-loader';
+import { redirect } from 'next/navigation';
+import { calculateCurrentBank } from '@/lib/calculations';
 
+export default async function ProjectionPage() {
+    const { settings, records } = await loadData();
 
-export default function ProjectionPage() {
-    const { settings, isLoading } = useTrade();
-
-    if (isLoading || !settings) {
-      // The main layout handles the loading state.
-      // We can return a skeleton or null here.
-      // For simplicity, returning null as loading.tsx will be used on initial page load.
-      return null;
+    if (!settings) {
+      redirect('/');
     }
 
+    const currentBank = calculateCurrentBank(settings, records);
+
   return (
-      <ProjectionTable />
+      <ProjectionTable settings={settings} currentBank={currentBank} />
   );
 }

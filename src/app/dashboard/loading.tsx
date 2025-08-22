@@ -1,12 +1,10 @@
+
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Header } from '@/components/header';
 
 export default function DashboardLoading() {
   return (
-    <div className="flex min-h-screen w-full flex-col">
-      <Header />
-      <main className="container mx-auto flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+    <div className="flex w-full flex-col gap-4 md:gap-8">
         {/* StatsCards Skeleton */}
         <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
@@ -74,7 +72,6 @@ export default function DashboardLoading() {
             </Card>
           </div>
         </div>
-      </main>
     </div>
   );
 }

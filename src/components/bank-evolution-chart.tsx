@@ -1,14 +1,19 @@
+
 'use client';
 
-import { useTrade } from '@/context/trade-data-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { useMemo } from 'react';
 import { format, parseISO } from 'date-fns';
+import type { DailyRecord, UserSettings } from '@/lib/types';
 
-export function BankEvolutionChart() {
-  const { settings, records } = useTrade();
+interface BankEvolutionChartProps {
+    settings: UserSettings;
+    records: DailyRecord[];
+}
+
+export function BankEvolutionChart({ settings, records }: BankEvolutionChartProps) {
 
   const chartData = useMemo(() => {
     if (!settings || records.length === 0) return [];

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -7,10 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useTrade } from '@/context/trade-data-provider';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { addBankOperation } from '@/app/actions/trade-actions';
+import { useRouter } from 'next/navigation';
 
 const operationSchema = z.object({
   value: z.coerce.number().positive({ message: 'O valor deve ser positivo.' }),
@@ -25,9 +27,9 @@ interface BankOperationDialogProps {
 }
 
 export function BankOperationDialog({ isOpen, setIsOpen, operationType }: BankOperationDialogProps) {
-  const { addBankOperation } = useTrade();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const form = useForm<OperationFormValues>({
     resolver: zodResolver(operationSchema),
@@ -52,6 +54,7 @@ export function BankOperationDialog({ isOpen, setIsOpen, operationType }: BankOp
         });
         form.reset({ value: 0 });
         setIsOpen(false);
+        router.refresh();
     } else {
         toast({
             variant: "destructive",

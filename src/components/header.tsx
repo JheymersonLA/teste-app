@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -8,15 +9,36 @@ import { List, ChartLineUp } from 'phosphor-react';
 import { cn } from '@/lib/utils';
 import { SettingsDialog } from './settings-dialog';
 import { ThemeToggle } from './theme-toggle';
-
-const navLinks = [
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/projection', label: 'Projeção' },
-  { href: '/calendar', label: 'Calendário' },
-];
+import { useEffect, useState } from 'react';
+import type { UserSettings } from '@/lib/types';
+import { Skeleton } from './ui/skeleton';
 
 export function Header() {
   const pathname = usePathname();
+  // We fetch settings on the client side just for the dialog, 
+  // to avoid passing it down from every server component page.
+  // The rest of the app benefits from server-side data loading.
+  const [settings, setSettings] = useState<UserSettings | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function getSettings() {
+        setIsLoading(true);
+        const response = await fetch('/api/data');
+        const data = await response.json();
+        if (data.settings) {
+            setSettings(data.settings);
+        }
+        setIsLoading(false);
+    }
+    getSettings();
+  }, []);
+
+  const navLinks = [
+    { href: '/dashboard', label: 'Dashboard' },
+    { href: '/projection', label: 'Projeção' },
+    { href: '/calendar', label: 'Calendário' },
+  ];
 
   return (
     <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm md:px-6">
@@ -78,7 +100,11 @@ export function Header() {
       </Sheet>
       <div className="flex w-full items-center justify-end gap-2 md:ml-auto">
         <ThemeToggle />
-        <SettingsDialog />
+        {isLoading ? (
+            <Skeleton className="h-9 w-9 rounded-full" />
+        ) : (
+            <SettingsDialog settings={settings} />
+        )}
       </div>
     </header>
   );
