@@ -107,7 +107,7 @@ export function PerformanceHistoryTable() {
 
               return (
               <TableRow key={record.id}>
-                <TableCell className="font-medium">{format(parseISO(record.date), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</TableCell>
+                <TableCell className="font-medium">{format(parseISO(record.date), 'dd/MM/yyyy', { locale: ptBR })}</TableCell>
                 <TableCell><TypeIndicator type={record.type}/></TableCell>
                 <TableCell className={`text-right font-semibold ${valueColor}`}>
                     {formatValue(record)}
@@ -133,7 +133,7 @@ export function PerformanceHistoryTable() {
                       <AlertDialogHeader>
                         <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Essa ação não pode ser desfeita. Isso irá apagar permanentemente o registro de {format(parseISO(record.date), 'dd/MM/yyyy HH:mm', { locale: ptBR })}.
+                          Essa ação não pode ser desfeita. Isso irá apagar permanentemente o registro de {format(parseISO(record.date), 'dd/MM/yyyy', { locale: ptBR })}.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>

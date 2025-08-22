@@ -6,12 +6,13 @@
   },
   "records": [
     {
-      "date": "2025-08-22T17:34:09.764Z",
+      "type": "trade",
+      "date": "2025-08-22T19:24:52.345Z",
       "returnValue": 4.2,
       "entries": 15,
       "wins": 10,
       "losses": 5,
-      "id": "2a5c915e-c85a-4cef-b930-73a8e09e14f7"
+      "id": "23ad66c5-8a4a-4987-90a8-29e18b954519"
     }
   ]
 }

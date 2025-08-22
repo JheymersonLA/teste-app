@@ -12,7 +12,7 @@ import React,
 } from 'react';
 import type { DailyRecord, UserSettings } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
-import { format } from 'date-fns';
+import { format, startOfDay } from 'date-fns';
 
 interface TradeDataContextType {
   settings: UserSettings | null;
@@ -77,6 +77,11 @@ export function TradeDataProvider({ children }: { children: ReactNode }) {
   const addRecord = useCallback(async (newRecord: Omit<DailyRecord, 'id'>): Promise<{ success: boolean, message?: string }> => {
     try {
       const recordWithId: DailyRecord = { ...newRecord, id: uuidv4() };
+      
+      // Ensure date is set to the start of the day for trade records
+      if (recordWithId.type === 'trade') {
+        recordWithId.date = startOfDay(new Date(recordWithId.date)).toISOString();
+      }
 
       const response = await fetch('/api/data', {
         method: 'POST',
