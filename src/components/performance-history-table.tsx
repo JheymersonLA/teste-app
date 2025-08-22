@@ -147,8 +147,8 @@ export function PerformanceHistoryTable({ records }: PerformanceHistoryTableProp
                 <TableCell className="text-right">
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="icon" className="group">
-                        <Trash className="h-4 w-4 text-muted-foreground group-hover:text-destructive" />
+                      <Button variant="ghost" size="icon" className="group hover:bg-destructive">
+                        <Trash className="h-4 w-4 text-muted-foreground group-hover:text-destructive-foreground" />
                         <span className="sr-only">Deletar</span>
                       </Button>
                     </AlertDialogTrigger>
