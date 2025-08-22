@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useTrade } from '@/context/trade-data-provider';
-import { TrendingUp } from 'lucide-react';
 
 const setupSchema = z.object({
   initialBank: z.coerce.number().positive({ message: 'O valor deve ser positivo.' }),
@@ -38,10 +37,7 @@ export function Setup() {
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center">
-          <div className="mx-auto bg-primary text-primary-foreground rounded-full p-3 w-fit mb-4">
-             <TrendingUp className="h-8 w-8" />
-          </div>
-          <CardTitle className="text-2xl font-bold">Bem-vindo ao TradeFlow</CardTitle>
+          <CardTitle className="text-2xl font-bold">Bem-vindo</CardTitle>
           <CardDescription>Configure sua banca para começar a gerenciar suas operações.</CardDescription>
         </CardHeader>
         <CardContent>

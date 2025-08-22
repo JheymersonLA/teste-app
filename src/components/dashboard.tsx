@@ -5,7 +5,6 @@ import { StatsCards } from './stats-cards';
 import { BankEvolutionChart } from './bank-evolution-chart';
 import { DailyLogForm } from './daily-log-form';
 import { PerformanceHistoryTable } from './performance-history-table';
-import { TradeInsightsAI } from './trade-insights-ai';
 
 export function Dashboard() {
   return (
@@ -23,9 +22,6 @@ export function Dashboard() {
         </div>
         <div className="grid gap-4 md:gap-8">
             <PerformanceHistoryTable />
-        </div>
-        <div className="grid gap-4 md:gap-8">
-            <TradeInsightsAI />
         </div>
       </main>
     </div>

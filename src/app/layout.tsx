@@ -4,7 +4,7 @@ import { TradeDataProvider } from '@/context/trade-data-provider';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'TradeFlow',
+  title: 'App',
   description: 'Sistema para gestão de banca de Day Trade',
 };
 
