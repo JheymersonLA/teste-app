@@ -38,6 +38,7 @@ export function DailyLogForm() {
   const form = useForm<LogFormValues>({
     resolver: zodResolver(logSchema),
     defaultValues: {
+        date: new Date(),
         returnValue: 0,
         entries: 0,
         wins: 0,
@@ -57,6 +58,7 @@ export function DailyLogForm() {
             description: `Dados de ${format(data.date, 'PPP', { locale: ptBR })} foram salvos.`,
           });
         form.reset({
+            date: new Date(),
             returnValue: 0,
             entries: 0,
             wins: 0,
