@@ -11,8 +11,7 @@ import React,
   useMemo,
 } from 'react';
 import type { DailyRecord, UserSettings } from '@/lib/types';
-import { db } from '@/lib/firebase';
-import { collection, doc, getDoc, getDocs, setDoc, deleteDoc, writeBatch } from "firebase/firestore";
+import { v4 as uuidv4 } from 'uuid';
 
 interface TradeDataContextType {
   settings: UserSettings | null;
@@ -28,7 +27,8 @@ interface TradeDataContextType {
 
 const TradeDataContext = createContext<TradeDataContextType | undefined>(undefined);
 
-const SETTINGS_DOC_ID = 'main_settings';
+const SETTINGS_KEY = 'tradeflow_settings';
+const RECORDS_KEY = 'tradeflow_records';
 
 export function TradeDataProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<UserSettings | null>(null);
@@ -36,97 +36,78 @@ export function TradeDataProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      try {
-        // Fetch settings
-        const settingsDocRef = doc(db, "settings", SETTINGS_DOC_ID);
-        const settingsSnap = await getDoc(settingsDocRef);
-        if (settingsSnap.exists()) {
-          setSettings(settingsSnap.data() as UserSettings);
-        }
-
-        // Fetch records
-        const recordsCollectionRef = collection(db, "records");
-        const recordsSnap = await getDocs(recordsCollectionRef);
-        const recordsData = recordsSnap.docs.map(doc => doc.data() as DailyRecord);
-        recordsData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        setRecords(recordsData);
-
-      } catch (error) {
-        console.error("Failed to load data from Firestore", error);
-      } finally {
-        setIsLoading(false);
+    setIsLoading(true);
+    try {
+      const savedSettings = localStorage.getItem(SETTINGS_KEY);
+      if (savedSettings) {
+        setSettings(JSON.parse(savedSettings));
       }
-    };
-    loadData();
+
+      const savedRecords = localStorage.getItem(RECORDS_KEY);
+      if (savedRecords) {
+        const parsedRecords = JSON.parse(savedRecords) as DailyRecord[];
+        parsedRecords.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setRecords(parsedRecords);
+      }
+    } catch (error) {
+      console.error("Failed to load data from localStorage", error);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  const saveSettings = useCallback(async (newSettings: UserSettings) => {
+  const saveSettings = useCallback((newSettings: UserSettings) => {
     try {
-      const settingsDocRef = doc(db, "settings", SETTINGS_DOC_ID);
-      await setDoc(settingsDocRef, newSettings);
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings));
       setSettings(newSettings);
     } catch (error) {
-      console.error("Failed to save settings to Firestore", error);
+      console.error("Failed to save settings to localStorage", error);
     }
   }, []);
 
   const addRecord = useCallback(async (newRecord: Omit<DailyRecord, 'id'>): Promise<boolean> => {
-    const recordId = newRecord.date;
-    const recordDocRef = doc(db, "records", recordId);
-
     try {
-        const docSnap = await getDoc(recordDocRef);
-        if (docSnap.exists()) {
-            console.warn("Record for this date already exists");
-            return false; 
-        }
+      const existingRecords = JSON.parse(localStorage.getItem(RECORDS_KEY) || '[]') as DailyRecord[];
+      
+      const recordExists = existingRecords.some(r => r.date.split('T')[0] === newRecord.date.split('T')[0]);
+      if (recordExists) {
+        console.warn("Record for this date already exists");
+        return false;
+      }
+      
+      const recordWithId = { ...newRecord, id: uuidv4() };
+      const updatedRecords = [...existingRecords, recordWithId];
+      localStorage.setItem(RECORDS_KEY, JSON.stringify(updatedRecords));
 
-        const recordWithId = { ...newRecord, id: recordId };
-        await setDoc(recordDocRef, recordWithId);
-
-        setRecords(prevRecords => 
-            [...prevRecords, recordWithId].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        );
-        return true;
+      setRecords(prevRecords => 
+        [...prevRecords, recordWithId].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      );
+      return true;
     } catch (error) {
-        console.error("Failed to add record to Firestore", error);
+        console.error("Failed to add record to localStorage", error);
         return false;
     }
   }, []);
 
   const deleteRecord = useCallback(async (id: string) => {
     try {
-      const recordDocRef = doc(db, "records", id);
-      await deleteDoc(recordDocRef);
-      setRecords(prevRecords => prevRecords.filter((record) => record.id !== id));
+      const updatedRecords = records.filter((record) => record.id !== id);
+      localStorage.setItem(RECORDS_KEY, JSON.stringify(updatedRecords));
+      setRecords(updatedRecords);
     } catch (error) {
-      console.error("Failed to delete record from Firestore", error);
+      console.error("Failed to delete record from localStorage", error);
     }
-  }, []);
+  }, [records]);
 
   const resetData = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Delete all records
-      const recordsCollectionRef = collection(db, "records");
-      const recordsSnap = await getDocs(recordsCollectionRef);
-      const batch = writeBatch(db);
-      recordsSnap.docs.forEach((doc) => {
-        batch.delete(doc.ref);
-      });
-      await batch.commit();
-
-      // Delete settings
-      const settingsDocRef = doc(db, "settings", SETTINGS_DOC_ID);
-      await deleteDoc(settingsDocRef);
-      
+      localStorage.removeItem(RECORDS_KEY);
+      localStorage.removeItem(SETTINGS_KEY);
       setSettings(null);
       setRecords([]);
-
     } catch (error) {
-      console.error("Failed to reset data in Firestore", error);
+      console.error("Failed to reset data in localStorage", error);
     } finally {
         setIsLoading(false);
     }
