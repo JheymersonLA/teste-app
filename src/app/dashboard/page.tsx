@@ -4,11 +4,11 @@ import { StatsCards } from '@/components/stats-cards';
 import { BankEvolutionChart } from '@/components/bank-evolution-chart';
 import { DailyLogForm } from '@/components/daily-log-form';
 import { PerformanceHistoryTable } from '@/components/performance-history-table';
-import { Header } from '@/components/header';
 import { useTrade } from '@/context/trade-data-provider';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { Header } from '@/components/header';
 
 export default function DashboardPage() {
   const { settings, isLoading } = useTrade();

@@ -1,11 +1,11 @@
 'use client';
 
 import { TradeCalendar } from '@/components/trade-calendar';
-import { Header } from '@/components/header';
 import { useTrade } from '@/context/trade-data-provider';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { Header } from '@/components/header';
 
 export default function CalendarPage() {
     const { settings, isLoading } = useTrade();

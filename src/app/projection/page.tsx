@@ -1,11 +1,11 @@
 'use client';
 
 import { ProjectionTable } from '@/components/projection-table';
-import { Header } from '@/components/header';
 import { useTrade } from '@/context/trade-data-provider';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { Header } from '@/components/header';
 
 export default function ProjectionPage() {
     const { settings, isLoading } = useTrade();
