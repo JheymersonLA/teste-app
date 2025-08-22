@@ -1,36 +1,53 @@
-# TradeFlow - Análise de Arquitetura e Componentes
+# TradeFlow - Análise de Arquitetura e Componentes (Server-Side)
 
-Este documento fornece uma análise detalhada da arquitetura, estrutura de pastas, componentes e fluxo de dados do projeto TradeFlow. O objetivo é servir como um guia para desenvolvedores e IAs para entender o funcionamento do sistema e facilitar futuras modificações.
+Este documento fornece uma análise detalhada da arquitetura, estrutura de pastas, componentes e fluxo de dados do projeto TradeFlow, agora otimizado com **Next.js Server Components e Server Actions**. O objetivo é servir como um guia para desenvolvedores e IAs para entender o funcionamento do sistema e facilitar futuras modificações.
 
 ## 1. Visão Geral do Projeto
 
-O TradeFlow é uma aplicação web construída com **Next.js (App Router)**, **React**, **TypeScript** e **Tailwind CSS** para estilização, utilizando componentes da biblioteca **ShadCN/UI**. Ele funciona como um sistema de gerenciamento financeiro para *Day Traders*, permitindo que o usuário acompanhe seu desempenho, gerencie sua banca, defina metas e visualize seu progresso.
+O TradeFlow é uma aplicação web construída com **Next.js (App Router)**, **React**, **TypeScript** e **Tailwind CSS**, utilizando componentes da biblioteca **ShadCN/UI** e ícones da **Phosphor Icons**. Ele funciona como um sistema de gerenciamento financeiro para *Day Traders*, permitindo ao usuário acompanhar seu desempenho, gerenciar sua banca, definir metas e visualizar seu progresso.
 
 **Principais Funcionalidades:**
 - **Configuração Inicial:** O usuário define o valor inicial de sua banca e metas percentuais.
-- **Registro Diário:** Lançamento de resultados diários (ganho/perda, número de operações, vitórias e derrotas).
+- **Registro de Operações:** Lançamento de resultados diários (ganho/perda) e movimentações de banca (depósitos/retiradas).
 - **Dashboard Principal:** Exibe cartões com estatísticas vitais, um gráfico da evolução da banca e o histórico de operações.
-- **Projeção de Ganhos:** Mostra uma tabela com a projeção de crescimento da banca para os próximos 90 dias com base em juros compostos sobre a meta diária.
+- **Projeção de Ganhos:** Mostra uma tabela com a projeção de crescimento da banca para os próximos 90 dias.
 - **Calendário de Performance:** Visualização mensal onde os dias são coloridos de acordo com o resultado (ganho ou perda).
-- **Persistência de Dados:** Todas as informações do usuário (configurações e registros) são salvas em um arquivo `data/database.json` no servidor, gerenciado por rotas de API do Next.js.
+- **Persistência de Dados:** Todas as informações são salvas em um arquivo `data/database.json` no servidor.
 
 ---
 
-## 2. Estrutura de Pastas e Arquivos
+## 2. Arquitetura Server-Side com Next.js
+
+A aplicação foi refatorada para uma arquitetura "server-first", aproveitando ao máximo os recursos do Next.js App Router.
+
+- **Server Components:** As páginas (`/dashboard`, `/projection`, etc.) são agora Server Components. Elas buscam os dados diretamente do sistema de arquivos do servidor **antes** de a página ser renderizada. Isso resulta em um carregamento inicial muito mais rápido, pois o HTML enviado ao navegador já contém todos os dados necessários.
+- **Server Actions:** Todas as modificações de dados (salvar configurações, adicionar/deletar registros) são tratadas por **Server Actions** (`src/app/actions/trade-actions.ts`). Essas funções assíncronas rodam exclusivamente no servidor, garantindo segurança e simplificando o código do cliente. Elas manipulam o `database.json` e usam a função `revalidatePath` do Next.js para atualizar a interface do usuário automaticamente.
+- **Sem Client-Side Data Fetching para Carregamento Inicial:** O `TradeDataProvider` e o hook `useTrade` foram removidos. O gerenciamento de estado global para os dados da aplicação não é mais necessário, pois os dados são passados do servidor para o cliente via `props`.
+
+---
+
+## 3. Estrutura de Pastas e Arquivos
 
 ```
 src
 ├── app/                  # Rotas e Páginas (Next.js App Router)
-│   ├── calendar/page.tsx   # Página do Calendário
-│   ├── dashboard/page.tsx  # Página do Dashboard (Principal)
-│   ├── projection/page.tsx # Página de Projeção
-│   ├── globals.css         # Estilos globais e variáveis de tema (Tailwind)
-│   ├── layout.tsx          # Layout Raiz da Aplicação
+│   ├── actions/
+│   │   └── trade-actions.ts  # Server Actions para manipular os dados
+│   ├── api/
+│   │   └── exchange-rate/    # Rota de API para cotação do dólar
+│   ├── calendar/page.tsx   # Página do Calendário (Server Component)
+│   ├── dashboard/
+│   │   ├── loading.tsx     # Skeleton UI para o dashboard
+│   │   └── page.tsx        # Página do Dashboard (Server Component)
+│   ├── projection/page.tsx # Página de Projeção (Server Component)
+│   ├── globals.css         # Estilos globais e variáveis de tema
+│   ├── layout.tsx          # Layout Raiz (Server Component)
 │   └── page.tsx            # Página de Entrada (Setup ou redirecionamento)
 │
-├── components/           # Componentes React reutilizáveis
-│   ├── ui/                 # Componentes base do ShadCN/UI (Botão, Card, etc.)
+├── components/           # Componentes React reutilizáveis ('use client')
+│   ├── ui/                 # Componentes base do ShadCN/UI
 │   ├── bank-evolution-chart.tsx
+│   ├── bank-operation-dialog.tsx
 │   ├── daily-log-form.tsx
 │   ├── header.tsx
 │   ├── performance-history-table.tsx
@@ -41,97 +58,41 @@ src
 │   ├── theme-toggle.tsx
 │   └── trade-calendar.tsx
 │
-├── context/              # Contextos React para gerenciamento de estado
-│   ├── theme-provider.tsx    # Gerencia o tema (light/dark)
-│   └── trade-data-provider.tsx # Gerencia todos os dados da aplicação
+├── lib/                  # Funções utilitárias, tipos e lógica de negócio
+│   ├── calculations.ts     # Funções puras para cálculos (banca, win rate)
+│   ├── data-loader.ts      # Função para carregar dados do JSON no servidor
+│   ├── types.ts            # Definições de tipos TypeScript
+│   └── utils.ts            # Utilitários (ex: cn para classes Tailwind)
 │
-├── hooks/                # Hooks React customizados
-│   ├── use-mobile.tsx      # Hook para detectar se o dispositivo é mobile
-│   └── use-toast.ts        # Hook para exibir notificações (toasts)
-│
-└── lib/                  # Funções utilitárias e definições de tipo
-    ├── types.ts            # Definições de tipos TypeScript (UserSettings, DailyRecord)
-    └── utils.ts            # Funções utilitárias (ex: cn para classes Tailwind)
+└── data/
+    └── database.json       # "Banco de dados" em arquivo JSON
 ```
 
 ---
 
-## 3. Fluxo de Dados e Gerenciamento de Estado
+## 4. Fluxo de Dados
 
-O coração do gerenciamento de estado da aplicação é o **`TradeDataProvider`** (`src/context/trade-data-provider.tsx`).
+1.  **Carregamento de Página:**
+    *   O usuário acessa uma URL, por exemplo, `/dashboard`.
+    *   O Server Component `src/app/dashboard/page.tsx` é executado no servidor.
+    *   Ele chama a função `loadData()` (`src/lib/data-loader.ts`), que lê o arquivo `data/database.json`.
+    *   Os dados lidos (`settings` e `records`) são passados como `props` para os componentes de cliente (`'use client'`) que renderizam a UI, como `StatsCards` e `BankEvolutionChart`.
+    *   O Next.js envia o HTML já renderizado e com os dados para o navegador.
 
-- **Como Funciona:** Este provedor de contexto é responsável por:
-    1.  Ler os dados de `settings` (configurações) e `records` (registros) do `localStorage` quando a aplicação é carregada.
-    2.  Fornecer esses dados para todos os componentes que precisam deles através do hook `useTrade()`.
-    3.  Disponibilizar funções para manipular os dados: `saveSettings`, `addRecord`, `deleteRecord`, e `resetData`. Essas funções atualizam tanto o estado no React quanto os dados no `localStorage`.
-    4.  Calcular valores derivados em tempo real, como `currentBank` (banca atual) e `winRate` (taxa de acerto), e disponibilizá-los através do mesmo hook.
-
-- **`ThemeProvider`**: Gerencia o estado do tema (claro, escuro ou sistema) e aplica a classe correspondente ao elemento `<html>` para que os estilos do Tailwind CSS funcionem corretamente.
+2.  **Modificação de Dados (Ex: Adicionar Registro):**
+    *   O usuário preenche e envia o formulário no componente `DailyLogForm` (um Client Component).
+    *   O `onSubmit` do formulário chama a Server Action `addRecord` importada de `src/app/actions/trade-actions.ts`.
+    *   A função `addRecord` executa **no servidor**, lê o `database.json`, adiciona o novo registro e salva o arquivo.
+    *   Ao final, a action chama `revalidatePath('/dashboard')`. Isso instrui o Next.js a invalidar o cache da página do dashboard.
+    *   O Next.js automaticamente busca os novos dados e re-renderiza a página com as informações atualizadas, sem a necessidade de um refresh manual.
 
 ---
 
-## 4. Análise das Telas e Componentes
+## 5. Análise dos Componentes Chave
 
-### a. Telas (Páginas)
+A maioria dos componentes manteve sua responsabilidade visual, mas a forma como recebem dados foi alterada.
 
--   **`app/page.tsx` (Página de Entrada):**
-    -   **Lógica:** Verifica se `settings` existem no `useTrade()`.
-    -   Se **NÃO** existem, renderiza o componente `Setup`.
-    -   Se **SIM**, redireciona o usuário para `/dashboard`.
-
--   **`app/dashboard/page.tsx` (Dashboard):**
-    -   **Função:** Tela principal que agrega os componentes mais importantes para o usuário.
-    -   **Componentes Utilizados:** `Header`, `StatsCards`, `BankEvolutionChart`, `DailyLogForm`, `PerformanceHistoryTable`.
-    -   **Estrutura:** Um grid layout que organiza os cards e o gráfico de forma responsiva.
-
--   **`app/projection/page.tsx` (Projeção):**
-    -   **Função:** Exibe a projeção de ganhos futuros.
-    -   **Componentes Utilizados:** `Header`, `ProjectionTable`.
-
--   **`app/calendar/page.tsx` (Calendário):**
-    -   **Função:** Mostra a performance em uma visão de calendário.
-    -   **Componentes Utilizados:** `Header`, `TradeCalendar`.
-
-### b. Componentes Principais
-
--   **`Header` (`header.tsx`):**
-    -   Barra de navegação fixa no topo.
-    -   Contém os links para "Dashboard", "Projeção" e "Calendário".
-    -   Inclui o `ThemeToggle` para mudar o tema e o `SettingsDialog` para acessar as configurações.
-
--   **`Setup` (`setup.tsx`):**
-    -   Formulário inicial para o usuário inserir o valor da banca e as metas.
-    -   Aparece apenas na primeira vez que o usuário acessa.
-    -   Ao submeter, chama `saveSettings` do `useTrade()` e o usuário é redirecionado para o dashboard.
-
--   **`StatsCards` (`stats-cards.tsx`):**
-    -   **Função:** Exibe 4 cartões com as métricas mais importantes.
-    -   **Dados:** Banca Atual, Valor de Entrada Diária (meta), Meta de Lucro Diário e Taxa de Acerto.
-    -   **Lógica:** Busca os dados de `settings`, `currentBank` e `winRate` do `useTrade()` e calcula os valores a serem exibidos.
-
--   **`BankEvolutionChart` (`bank-evolution-chart.tsx`):**
-    -   **Função:** Renderiza um gráfico de área mostrando o crescimento da banca ao longo do tempo.
-    -   **Lógica:** Usa a biblioteca `recharts`. Pega os `records` e `settings` do `useTrade()`, ordena os registros por data e calcula o valor acumulado da banca dia após dia para montar a série de dados do gráfico.
-
--   **`DailyLogForm` (`daily-log-form.tsx`):**
-    -   **Função:** Formulário para o usuário registrar o resultado do seu dia de trade.
-    -   **Campos:** Data, Resultado (Ganho/Perda), Valor, Entradas, Ganhos, Perdas.
-    -   **Validação:** Usa `react-hook-form` e `zod` para validar os dados (ex: a soma de ganhos e perdas deve ser igual ao total de entradas).
-    -   **Lógica:** Ao submeter, chama a função `addRecord` do `useTrade()`. Exibe toasts de sucesso ou erro.
-
--   **`PerformanceHistoryTable` (`performance-history-table.tsx`):**
-    -   **Função:** Exibe uma tabela com o histórico de todos os registros diários.
-    -   **Colunas:** Data, Resultado (R$), Entradas, Ganhos, Perdas, Taxa de Acerto (%), Ação (Deletar).
-    -   **Lógica:** Mapeia os `records` do `useTrade()`. O resultado é colorido (verde/vermelho). A taxa de acerto é exibida em uma `Badge` também colorida. O botão de deletar abre um diálogo de confirmação e chama `deleteRecord` do `useTrade()`.
-
--   **`ProjectionTable` (`projection-table.tsx`):**
-    -   **Função:** Tabela que calcula e exibe a projeção de ganhos para os próximos 90 dias.
-    -   **Lógica:** Usa `useMemo` para calcular os dados da projeção. Pega a `currentBank` e a `dailyProfitTarget` do `useTrade()`. Itera 90 vezes, calculando o lucro diário com base no valor projetado da banca do dia anterior (juros compostos) e adiciona à tabela.
-
--   **`TradeCalendar` (`trade-calendar.tsx`):**
-    -   **Função:** Exibe um calendário de tela cheia.
-    -   **Lógica:** Usa a biblioteca `react-day-picker`. Pega os `records` do `useTrade()` e cria dois arrays de datas: `gainDays` e `lossDays`. Esses arrays são passados como "modificadores" para o calendário, que aplica estilos CSS diferentes para cada um (fundo verde para ganho, vermelho para perda). Utiliza a localidade `pt-BR` para tradução.
-
--   **`SettingsDialog` (`settings-dialog.tsx`):**
-    -   **Função:** Um modal (diálogo) que permite ao usuário editar as configurações salvas ou resetar todos os dados.
-    -   **Lógica:** Funciona de forma similar ao `Setup`, mas é acessado por um ícone no cabeçalho. Ao salvar, chama `saveSettings`. O botão "Resetar Dados" abre um segundo diálogo de confirmação e, se confirmado, chama `resetData`.
+-   **Páginas (`/dashboard/page.tsx`, etc.):** Agora são Server Components. Sua principal responsabilidade é carregar os dados via `loadData` e passá-los como props para os componentes de UI. Eles também contêm a lógica de redirecionamento.
+-   **Componentes de UI (`StatsCards`, `BankEvolutionChart`, etc.):** São Client Components (`'use client'`) para poderem usar interatividade (hooks como `useState`, `useEffect`, etc.). Eles não buscam mais dados, apenas os recebem via `props` e os exibem.
+-   **Componentes com Formulários (`DailyLogForm`, `SettingsDialog`, etc.):** Continuam como Client Components. A diferença crucial é que agora, ao invés de chamarem uma API via `fetch` ou uma função de um Contexto, eles importam e chamam diretamente as **Server Actions** para realizar as modificações.
+-   **`loading.tsx`:** O arquivo em `app/dashboard/loading.tsx` é um recurso do Next.js. Ele cria uma UI de esqueleto (*skeleton loader*) que é exibida automaticamente no servidor enquanto os dados para a rota `/dashboard` estão sendo carregados, melhorando a performance percebida.
