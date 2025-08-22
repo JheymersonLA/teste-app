@@ -12,6 +12,9 @@ export function Header() {
         <Button variant="link" asChild>
           <Link href="/projection">Projeção</Link>
         </Button>
+        <Button variant="link" asChild>
+          <Link href="/calendar">Calendário</Link>
+        </Button>
       </nav>
       <div className="ml-auto">
         <SettingsDialog />
