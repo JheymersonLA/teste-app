@@ -5,7 +5,7 @@ import { BankEvolutionChart } from '@/components/bank-evolution-chart';
 import { DailyLogForm } from '@/components/daily-log-form';
 import { PerformanceHistoryTable } from '@/components/performance-history-table';
 import { useTrade } from '@/context/trade-data-provider';
-import { ArrowDown, ArrowUp, Spinner } from 'phosphor-react';
+import { ArrowDown, ArrowUp } from 'phosphor-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Header } from '@/components/header';
@@ -31,12 +31,8 @@ export default function DashboardPage() {
   }, [isLoading, settings, router]);
 
   if (isLoading || !settings) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center">
-        <Spinner className="h-12 w-12 animate-spin text-primary" />
-        <p className="mt-4 text-muted-foreground">Carregando...</p>
-      </div>
-    )
+    // O componente loading.tsx cuidará da UI de carregamento
+    return null;
   }
 
   return (
