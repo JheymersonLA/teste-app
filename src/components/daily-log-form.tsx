@@ -81,6 +81,19 @@ export function DailyLogForm() {
     }
   }
 
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (e.target.value === '0') {
+      e.target.value = '';
+    }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>, field: any) => {
+    if (e.target.value === '') {
+        field.onChange(0);
+    }
+  };
+
+
   return (
     <Card>
       <CardHeader>
@@ -164,7 +177,16 @@ export function DailyLogForm() {
                             />
                         </div>
                         <FormControl>
-                            <Input type="number" step="0.01" min="0" placeholder="0.00" {...field} className="mt-2 text-right" />
+                            <Input 
+                                type="number" 
+                                step="0.01" 
+                                min="0" 
+                                placeholder="0.00" 
+                                {...field} 
+                                onFocus={handleFocus}
+                                onBlur={(e) => handleBlur(e, field)}
+                                className="mt-2 text-right" 
+                            />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -179,7 +201,7 @@ export function DailyLogForm() {
                     <FormItem>
                     <FormLabel>Entradas</FormLabel>
                     <FormControl>
-                        <Input type="number" {...field} />
+                        <Input type="number" {...field} onFocus={handleFocus} onBlur={(e) => handleBlur(e, field)} />
                     </FormControl>
                     </FormItem>
                 )}
@@ -191,7 +213,7 @@ export function DailyLogForm() {
                     <FormItem>
                     <FormLabel>Ganhos</FormLabel>
                     <FormControl>
-                        <Input type="number" {...field} />
+                        <Input type="number" {...field} onFocus={handleFocus} onBlur={(e) => handleBlur(e, field)} />
                     </FormControl>
                     </FormItem>
                 )}
@@ -203,7 +225,7 @@ export function DailyLogForm() {
                     <FormItem>
                     <FormLabel>Perdas</FormLabel>
                     <FormControl>
-                        <Input type="number" {...field} />
+                        <Input type="number" {...field} onFocus={handleFocus} onBlur={(e) => handleBlur(e, field)} />
                     </FormControl>
                     </FormItem>
                 )}
