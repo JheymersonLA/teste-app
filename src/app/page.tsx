@@ -4,6 +4,7 @@ import { useTrade } from '@/context/trade-data-provider';
 import { Setup } from '@/components/setup';
 import { Dashboard } from '@/components/dashboard';
 import { Loader2 } from 'lucide-react';
+import Link from 'next/link';
 
 export default function Home() {
   const { settings, isLoading } = useTrade();
