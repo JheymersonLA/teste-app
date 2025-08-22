@@ -22,10 +22,25 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import { Trash } from 'phosphor-react';
+import { ArrowDown, ArrowUp, ChartLine, Trash } from 'phosphor-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from './ui/badge';
+import { cn } from '@/lib/utils';
+import type { DailyRecord } from '@/lib/types';
+
+
+const TypeIndicator = ({ type }: { type: DailyRecord['type'] }) => {
+  const baseClasses = "flex items-center gap-2"
+  switch (type) {
+    case 'deposit':
+      return <div className={cn(baseClasses, "text-blue-500")}><ArrowUp weight="bold" /> Depósito</div>;
+    case 'withdrawal':
+      return <div className={cn(baseClasses, "text-orange-500")}><ArrowDown weight="bold" /> Retirada</div>;
+    default:
+      return <div className={cn(baseClasses, "text-muted-foreground")}><ChartLine weight="bold" /> Trade</div>;
+  }
+}
 
 export function PerformanceHistoryTable() {
   const { records, deleteRecord } = useTrade();
@@ -44,6 +59,8 @@ export function PerformanceHistoryTable() {
     );
   }
 
+  const sortedRecords = [...records].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
   return (
     <Card>
       <CardHeader>
@@ -55,30 +72,54 @@ export function PerformanceHistoryTable() {
           <TableHeader>
             <TableRow>
               <TableHead>Data</TableHead>
-              <TableHead className="text-right">Resultado ($)</TableHead>
-              <TableHead className="text-center">Entradas</TableHead>
-              <TableHead className="text-center">Ganhos</TableHead>
-              <TableHead className="text-center">Perdas</TableHead>
+              <TableHead>Tipo</TableHead>
+              <TableHead className="text-right">Valor ($)</TableHead>
               <TableHead className="text-center">Taxa de Acerto</TableHead>
               <TableHead className="text-right">Ação</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {records.map((record) => {
-              const winRate = record.entries > 0 ? (record.wins / record.entries) * 100 : 0;
+            {sortedRecords.map((record) => {
+              const isTrade = record.type === 'trade';
+              const winRate = isTrade && record.entries && record.entries > 0 ? (record.wins! / record.entries) * 100 : 0;
+              
+              let valueColor = '';
+              if (record.type === 'trade') {
+                valueColor = record.returnValue >= 0 ? 'text-green-600' : 'text-red-600';
+              } else if (record.type === 'deposit') {
+                valueColor = 'text-blue-500';
+              } else if (record.type === 'withdrawal') {
+                valueColor = 'text-orange-500';
+              }
+
+              const formatValue = (record: DailyRecord) => {
+                if (record.type === 'trade') {
+                    return record.returnValue >= 0 ? `+$${record.returnValue.toFixed(2)}` : `-$${Math.abs(record.returnValue).toFixed(2)}`;
+                }
+                if (record.type === 'deposit') {
+                    return `+$${record.returnValue.toFixed(2)}`;
+                }
+                if (record.type === 'withdrawal') {
+                    return `-$${Math.abs(record.returnValue).toFixed(2)}`;
+                }
+                return `$${record.returnValue.toFixed(2)}`;
+              }
+
               return (
               <TableRow key={record.id}>
-                <TableCell className="font-medium">{format(parseISO(record.date), 'dd/MM/yyyy', { locale: ptBR })}</TableCell>
-                <TableCell className={`text-right font-semibold ${record.returnValue >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {record.returnValue >= 0 ? `+$${record.returnValue.toFixed(2)}` : `-$${Math.abs(record.returnValue).toFixed(2)}`}
+                <TableCell className="font-medium">{format(parseISO(record.date), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</TableCell>
+                <TableCell><TypeIndicator type={record.type}/></TableCell>
+                <TableCell className={`text-right font-semibold ${valueColor}`}>
+                    {formatValue(record)}
                 </TableCell>
-                <TableCell className="text-center">{record.entries}</TableCell>
-                <TableCell className="text-center">{record.wins}</TableCell>
-                <TableCell className="text-center">{record.losses}</TableCell>
                 <TableCell className="text-center">
-                  <Badge variant={winRate >= 50 ? 'default' : 'destructive'} className={winRate >= 50 ? 'bg-green-500/20 text-green-700 border-green-500/30 hover:bg-green-500/30 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20' : 'bg-red-500/20 text-red-700 border-red-500/30 hover:bg-red-500/30 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20'}>
-                    {winRate.toFixed(1)}%
-                  </Badge>
+                  {isTrade ? (
+                    <Badge variant={winRate >= 50 ? 'default' : 'destructive'} className={winRate >= 50 ? 'bg-green-500/20 text-green-700 border-green-500/30 hover:bg-green-500/30 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20' : 'bg-red-500/20 text-red-700 border-red-500/30 hover:bg-red-500/30 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20'}>
+                      {winRate.toFixed(1)}%
+                    </Badge>
+                  ) : (
+                    <span className="text-muted-foreground">-</span>
+                  )}
                 </TableCell>
                 <TableCell className="text-right">
                   <AlertDialog>
@@ -92,7 +133,7 @@ export function PerformanceHistoryTable() {
                       <AlertDialogHeader>
                         <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Essa ação não pode ser desfeita. Isso irá apagar permanentemente o registro de {format(parseISO(record.date), 'dd/MM/yyyy', { locale: ptBR })}.
+                          Essa ação não pode ser desfeita. Isso irá apagar permanentemente o registro de {format(parseISO(record.date), 'dd/MM/yyyy HH:mm', { locale: ptBR })}.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>

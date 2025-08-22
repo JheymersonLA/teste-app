@@ -1,10 +1,11 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { NextRequest, NextResponse } from 'next/server';
+import type { DailyRecord, UserSettings } from '@/lib/types';
 
 const DATA_FILE_PATH = path.join(process.cwd(), 'data', 'database.json');
 
-async function readData() {
+async function readData(): Promise<{ settings: UserSettings | null; records: DailyRecord[] }> {
   try {
     const data = await fs.readFile(DATA_FILE_PATH, 'utf8');
     return JSON.parse(data);
@@ -39,6 +40,13 @@ export async function POST(req: NextRequest) {
     if (type === 'settings') {
       data.settings = payload;
     } else if (type === 'record') {
+      // Prevent duplicate trade records for the same day
+      if(payload.type === 'trade') {
+        const recordExists = data.records.some((r: DailyRecord) => r.type === 'trade' && r.date.split('T')[0] === payload.date.split('T')[0]);
+        if (recordExists) {
+            return NextResponse.json({ message: 'Record for this date already exists' }, { status: 409 });
+        }
+      }
       data.records.push(payload);
     } else if (type === 'reset') {
       data = { settings: null, records: [] };
@@ -47,7 +55,7 @@ export async function POST(req: NextRequest) {
     }
 
     await writeData(data);
-    return NextResponse.json({ message: 'Data updated successfully' });
+    return NextResponse.json({ message: 'Data updated successfully', data });
   } catch (error: any) {
     console.error('Error writing data:', error);
     return NextResponse.json({ message: 'Error writing data', error: error.message }, { status: 500 });

@@ -5,10 +5,12 @@ export interface UserSettings {
 }
 
 export interface DailyRecord {
-  id: string; // unique identifier, e.g., ISO date string
+  id: string;
   date: string; // ISO date string for date manipulation
   returnValue: number;
-  entries: number;
-  wins: number;
-  losses: number;
+  type: 'trade' | 'deposit' | 'withdrawal';
+  // Optional fields, only for 'trade' type
+  entries?: number;
+  wins?: number;
+  losses?: number;
 }

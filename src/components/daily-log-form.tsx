@@ -22,7 +22,7 @@ const logSchema = z.object({
     }),
     resultType: z.enum(['gain', 'loss'], { required_error: 'Selecione Ganho ou Perda.' }),
     resultValue: z.coerce.number().min(0, { message: 'O valor deve ser positivo.' }),
-    entries: z.coerce.number().int().min(0, { message: 'Deve ser um número positivo.' }),
+    entries: z.coerce.number().int().min(1, { message: 'Deve ser pelo menos 1.' }),
     wins: z.coerce.number().int().min(0, { message: 'Deve ser um número positivo.' }),
     losses: z.coerce.number().int().min(0, { message: 'Deve ser um número positivo.' }),
   }).refine(data => data.wins + data.losses === data.entries, {
@@ -51,7 +51,8 @@ export function DailyLogForm() {
   async function onSubmit(data: LogFormValues) {
     const returnValue = data.resultType === 'gain' ? data.resultValue : -data.resultValue;
 
-    const success = await addRecord({
+    const result = await addRecord({
+        type: 'trade',
         date: data.date.toISOString(),
         returnValue: returnValue,
         entries: data.entries,
@@ -59,7 +60,7 @@ export function DailyLogForm() {
         losses: data.losses,
     });
 
-    if (success) {
+    if (result.success) {
         toast({
             title: "Registro adicionado!",
             description: `Dados de ${format(data.date, 'PPP', { locale: ptBR })} foram salvos.`,
@@ -76,172 +77,155 @@ export function DailyLogForm() {
         toast({
             variant: "destructive",
             title: "Erro",
-            description: `Já existe um registro para a data ${format(data.date, 'PPP', { locale: ptBR })}.`,
+            description: result.message || 'Ocorreu um erro ao adicionar o registro.',
         });
     }
   }
 
-  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    if (e.target.value === '0') {
-      e.target.value = '';
-    }
-  };
-
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement>, field: any) => {
-    if (e.target.value === '') {
-        field.onChange(0);
-    }
-  };
-
-
   return (
-    <Card className="h-full flex flex-col">
+    <Card>
       <CardHeader>
         <CardTitle>Registrar Operações do Dia</CardTitle>
         <CardDescription>Adicione os resultados do seu dia de trade.</CardDescription>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col">
+      <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 flex flex-col flex-1">
-            <div className='flex-1 space-y-4'>
-              <FormField
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="date"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Data da Operação</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, 'PPP', { locale: ptBR })
+                          ) : (
+                            <span>Escolha uma data</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        disabled={(date) =>
+                          date > new Date() || date < new Date("1900-01-01")
+                        }
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
                 control={form.control}
-                name="date"
+                name="resultValue"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Data da Operação</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
+                    <FormItem>
+                    <FormLabel>Resultado do Dia ($)</FormLabel>
+                        <div className='flex items-center gap-2'>
+                          <FormField
+                                control={form.control}
+                                name="resultType"
+                                render={({ field: resultTypeField }) => (
+                                    <div className='grid grid-cols-2 gap-2 flex-1'>
+                                        <Button 
+                                            type="button"
+                                            variant={resultTypeField.value === 'gain' ? 'default' : 'outline'}
+                                            onClick={() => resultTypeField.onChange('gain')}
+                                            className={resultTypeField.value === 'gain' ? 'bg-green-600 hover:bg-green-700' : ''}
+                                        >
+                                            Ganho
+                                        </Button>
+                                        <Button 
+                                            type="button"
+                                            variant={resultTypeField.value === 'loss' ? 'destructive' : 'outline'}
+                                            onClick={() => resultTypeField.onChange('loss')}
+                                        >
+                                            Perda
+                                        </Button>
+                                    </div>
+                                )}
+                            />
+                        </div>
                         <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, 'PPP', { locale: ptBR })
-                            ) : (
-                              <span>Escolha uma data</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
+                            <Input 
+                                type="number" 
+                                step="0.01" 
+                                min="0" 
+                                placeholder="0.00" 
+                                {...field} 
+                                className="mt-2 text-right" 
+                            />
                         </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date) =>
-                            date > new Date() || date < new Date("1900-01-01")
-                          }
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
+                        <FormMessage />
+                    </FormItem>
                 )}
-              />
-              
-              <FormField
-                  control={form.control}
-                  name="resultValue"
-                  render={({ field }) => (
-                      <FormItem>
-                      <FormLabel>Resultado do Dia ($)</FormLabel>
-                          <div className='flex items-center gap-2'>
-                            <FormField
-                                  control={form.control}
-                                  name="resultType"
-                                  render={({ field: resultTypeField }) => (
-                                      <div className='grid grid-cols-2 gap-2 flex-1'>
-                                          <Button 
-                                              type="button"
-                                              variant={resultTypeField.value === 'gain' ? 'default' : 'outline'}
-                                              onClick={() => resultTypeField.onChange('gain')}
-                                              className={resultTypeField.value === 'gain' ? 'bg-green-600 hover:bg-green-700' : ''}
-                                          >
-                                              Ganho
-                                          </Button>
-                                          <Button 
-                                              type="button"
-                                              variant={resultTypeField.value === 'loss' ? 'destructive' : 'outline'}
-                                              onClick={() => resultTypeField.onChange('loss')}
-                                          >
-                                              Perda
-                                          </Button>
-                                      </div>
-                                  )}
-                              />
-                          </div>
-                          <FormControl>
-                              <Input 
-                                  type="number" 
-                                  step="0.01" 
-                                  min="0" 
-                                  placeholder="0.00" 
-                                  {...field} 
-                                  onFocus={handleFocus}
-                                  onBlur={(e) => handleBlur(e, field)}
-                                  className="mt-2 text-right" 
-                              />
-                          </FormControl>
-                          <FormMessage />
-                      </FormItem>
-                  )}
-              />
+            />
 
-              <div className="grid grid-cols-3 gap-4">
-                  <FormField
-                  control={form.control}
-                  name="entries"
-                  render={({ field }) => (
-                      <FormItem>
-                      <FormLabel>Entradas</FormLabel>
-                      <FormControl>
-                          <Input type="number" {...field} onFocus={handleFocus} onBlur={(e) => handleBlur(e, field)} />
-                      </FormControl>
-                      </FormItem>
-                  )}
-                  />
-                  <FormField
-                  control={form.control}
-                  name="wins"
-                  render={({ field }) => (
-                      <FormItem>
-                      <FormLabel>Ganhos</FormLabel>
-                      <FormControl>
-                          <Input type="number" {...field} onFocus={handleFocus} onBlur={(e) => handleBlur(e, field)} />
-                      </FormControl>
-                      </FormItem>
-                  )}
-                  />
-                  <FormField
-                  control={form.control}
-                  name="losses"
-                  render={({ field }) => (
-                      <FormItem>
-                      <FormLabel>Perdas</FormLabel>
-                      <FormControl>
-                          <Input type="number" {...field} onFocus={handleFocus} onBlur={(e) => handleBlur(e, field)} />
-                      </FormControl>
-                      </FormItem>
-                  )}
-                  />
-              </div>
-              <FormField
-                  control={form.control}
-                  name="entries"
-                  render={() => (
-                      <FormItem>
-                          <FormMessage />
-                      </FormItem>
-                  )}
-              />
+            <div className="grid grid-cols-3 gap-4">
+                <FormField
+                control={form.control}
+                name="entries"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Entradas</FormLabel>
+                    <FormControl>
+                        <Input type="number" {...field} />
+                    </FormControl>
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="wins"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Ganhos</FormLabel>
+                    <FormControl>
+                        <Input type="number" {...field} />
+                    </FormControl>
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="losses"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Perdas</FormLabel>
+                    <FormControl>
+                        <Input type="number" {...field} />
+                    </FormControl>
+                    </FormItem>
+                )}
+                />
             </div>
+            <FormField
+                control={form.control}
+                name="entries"
+                render={() => (
+                    <FormItem>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
             <Button type="submit" className="w-full mt-auto">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Adicionar Registro

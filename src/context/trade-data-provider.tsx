@@ -12,22 +12,22 @@ import React,
 } from 'react';
 import type { DailyRecord, UserSettings } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
+import { format } from 'date-fns';
 
 interface TradeDataContextType {
   settings: UserSettings | null;
   records: DailyRecord[];
   isLoading: boolean;
   saveSettings: (settings: UserSettings) => void;
-  addRecord: (record: Omit<DailyRecord, 'id'>) => Promise<boolean>;
+  addRecord: (record: Omit<DailyRecord, 'id'>) => Promise<{ success: boolean, message?: string }>;
   deleteRecord: (id: string) => void;
   resetData: () => void;
   currentBank: number;
   winRate: number;
+  addBankOperation: (operation: { type: 'deposit' | 'withdrawal'; value: number }) => Promise<{ success: boolean, message?: string }>;
 }
 
 const TradeDataContext = createContext<TradeDataContextType | undefined>(undefined);
-
-
 
 export function TradeDataProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<UserSettings | null>(null);
@@ -74,16 +74,9 @@ export function TradeDataProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const addRecord = useCallback(async (newRecord: Omit<DailyRecord, 'id'>): Promise<boolean> => {
+  const addRecord = useCallback(async (newRecord: Omit<DailyRecord, 'id'>): Promise<{ success: boolean, message?: string }> => {
     try {
-      const recordWithId = { ...newRecord, id: uuidv4() };
-
-      // Check if record for this date already exists (client-side check for immediate feedback)
-      const recordExists = records.some(r => r.date.split('T')[0] === recordWithId.date.split('T')[0]);
-      if (recordExists) {
-        console.warn("Record for this date already exists");
-        return false;
-      }
+      const recordWithId: DailyRecord = { ...newRecord, id: uuidv4() };
 
       const response = await fetch('/api/data', {
         method: 'POST',
@@ -94,18 +87,33 @@ export function TradeDataProvider({ children }: { children: ReactNode }) {
       });
 
       if (!response.ok) {
+        if (response.status === 409) {
+          const formattedDate = format(new Date(recordWithId.date), 'dd/MM/yyyy');
+          const message = `Já existe um registro de trade para ${formattedDate}.`;
+          return { success: false, message };
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
-      setRecords(prevRecords => 
-        [...prevRecords, recordWithId].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      );
-      return true;
-    } catch (error) {
+      
+      const { data } = await response.json();
+      setRecords(data.records.sort((a: DailyRecord, b: DailyRecord) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+      
+      return { success: true };
+    } catch (error: any) {
         console.error("Failed to add record via API", error);
-        return false;
+        return { success: false, message: error.message };
     }
-  }, [records]);
+  }, []);
+
+  const addBankOperation = useCallback(async (operation: { type: 'deposit' | 'withdrawal'; value: number }): Promise<{ success: boolean, message?: string }> => {
+    const newOperation: Omit<DailyRecord, 'id'> = {
+        type: operation.type,
+        date: new Date().toISOString(),
+        returnValue: operation.type === 'deposit' ? operation.value : -operation.value,
+    };
+    return addRecord(newOperation);
+}, [addRecord]);
+
 
   const deleteRecord = useCallback(async (id: string) => {
     try {
@@ -158,8 +166,9 @@ export function TradeDataProvider({ children }: { children: ReactNode }) {
   }, [settings, records]);
 
   const winRate = useMemo(() => {
-    const totalWins = records.reduce((acc, rec) => acc + rec.wins, 0);
-    const totalEntries = records.reduce((acc, rec) => acc + rec.entries, 0);
+    const tradeRecords = records.filter(r => r.type === 'trade');
+    const totalWins = tradeRecords.reduce((acc, rec) => acc + (rec.wins || 0), 0);
+    const totalEntries = tradeRecords.reduce((acc, rec) => acc + (rec.entries || 0), 0);
     return totalEntries > 0 ? (totalWins / totalEntries) * 100 : 0;
   }, [records]);
 
@@ -172,7 +181,8 @@ export function TradeDataProvider({ children }: { children: ReactNode }) {
     deleteRecord,
     resetData,
     currentBank,
-    winRate
+    winRate,
+    addBankOperation,
   };
 
   return (

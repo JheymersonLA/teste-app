@@ -9,6 +9,7 @@ import { Spinner } from 'phosphor-react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Header } from '@/components/header';
+import { BankOperationForm } from '@/components/bank-operation-form';
 
 export default function DashboardPage() {
   const { settings, isLoading } = useTrade();
@@ -38,8 +39,9 @@ export default function DashboardPage() {
           <div className="xl:col-span-2">
             <BankEvolutionChart />
           </div>
-          <div className="row-span-2">
+          <div className="flex flex-col gap-4 md:gap-8">
             <DailyLogForm />
+            <BankOperationForm />
           </div>
           <div className="grid gap-4 md:gap-8 lg:col-span-2 xl:col-span-3">
             <PerformanceHistoryTable />
