@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from './ui/button';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { BarChart3 } from 'lucide-react';
+import { ThemeToggle } from './theme-toggle';
 
 export function Header() {
   const pathname = usePathname();
@@ -18,13 +18,9 @@ export function Header() {
 
   return (
     <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm md:px-6 z-50">
-      <Link href="/dashboard" className="flex items-center gap-2 text-xl font-bold hover:text-primary transition-colors mr-4">
-        <BarChart3 className="h-6 w-6" />
-        <span className="font-bold text-lg">TradeFlow</span>
-      </Link>
-      <nav className="flex items-center gap-2">
+      <nav className="hidden md:flex items-center gap-2">
         {links.map(link => (
-          <Button variant="link" asChild key={link.href}>
+          <Button variant="ghost" asChild key={link.href}>
             <Link 
               href={link.href} 
               className={cn(
@@ -37,7 +33,10 @@ export function Header() {
           </Button>
         ))}
       </nav>
-      <div className="ml-auto">
+      <div className="flex w-full items-center gap-4 md:ml-auto md:w-auto">
+        <div className="ml-auto flex-1 sm:flex-initial">
+         <ThemeToggle />
+        </div>
         <SettingsDialog />
       </div>
     </header>
