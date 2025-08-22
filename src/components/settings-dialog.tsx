@@ -34,6 +34,8 @@ import { Separator } from './ui/separator';
 import type { UserSettings } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import { resetData, saveSettings } from '@/app/actions/trade-actions';
+import { buttonVariants } from './ui/button';
+import { cn } from '@/lib/utils';
 
 const settingsSchema = z.object({
   initialBank: z.coerce.number().positive({ message: 'O valor deve ser positivo.' }),
@@ -168,7 +170,10 @@ export function SettingsDialog({ settings }: SettingsDialogProps) {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                     <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleReset}>
+                    <AlertDialogAction 
+                      onClick={handleReset}
+                      className={cn(buttonVariants({ variant: "destructive" }))}
+                    >
                         Sim, resetar dados
                     </AlertDialogAction>
                     </AlertDialogFooter>
