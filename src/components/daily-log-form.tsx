@@ -15,7 +15,6 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 
 const logSchema = z.object({
     date: z.date({
@@ -139,40 +138,34 @@ export function DailyLogForm() {
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Resultado do Dia (R$)</FormLabel>
-                        <div className='flex items-center gap-4'>
-                            <FormField
+                        <div className='flex items-center gap-2'>
+                           <FormField
                                 control={form.control}
                                 name="resultType"
-                                render={({ field }) => (
-                                    <FormItem className="space-y-3">
-                                    <FormControl>
-                                        <RadioGroup
-                                        onValueChange={field.onChange}
-                                        defaultValue={field.value}
-                                        className="flex space-x-2"
+                                render={({ field: resultTypeField }) => (
+                                    <div className='grid grid-cols-2 gap-2 flex-1'>
+                                        <Button 
+                                            type="button"
+                                            variant={resultTypeField.value === 'gain' ? 'default' : 'outline'}
+                                            onClick={() => resultTypeField.onChange('gain')}
+                                            className={resultTypeField.value === 'gain' ? 'bg-green-600 hover:bg-green-700' : ''}
                                         >
-                                        <FormItem className="flex items-center space-x-2 space-y-0">
-                                            <FormControl>
-                                            <RadioGroupItem value="gain" />
-                                            </FormControl>
-                                            <FormLabel className="font-normal">Ganho</FormLabel>
-                                        </FormItem>
-                                        <FormItem className="flex items-center space-x-2 space-y-0">
-                                            <FormControl>
-                                            <RadioGroupItem value="loss" />
-                                            </FormControl>
-                                            <FormLabel className="font-normal">Perda</FormLabel>
-                                        </FormItem>
-                                        </RadioGroup>
-                                    </FormControl>
-                                    <FormMessage />
-                                    </FormItem>
+                                            Ganho
+                                        </Button>
+                                        <Button 
+                                            type="button"
+                                            variant={resultTypeField.value === 'loss' ? 'destructive' : 'outline'}
+                                            onClick={() => resultTypeField.onChange('loss')}
+                                        >
+                                            Perda
+                                        </Button>
+                                    </div>
                                 )}
                             />
-                            <FormControl>
-                                <Input type="number" step="0.01" min="0" placeholder="Valor" {...field} />
-                            </FormControl>
                         </div>
+                        <FormControl>
+                            <Input type="number" step="0.01" min="0" placeholder="0.00" {...field} className="mt-2 text-right" />
+                        </FormControl>
                         <FormMessage />
                     </FormItem>
                 )}
