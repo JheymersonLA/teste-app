@@ -1,3 +1,4 @@
+
 'use client';
 
 import { StatsCards } from '@/components/stats-cards';
@@ -6,16 +7,13 @@ import { DailyLogForm } from '@/components/daily-log-form';
 import { PerformanceHistoryTable } from '@/components/performance-history-table';
 import { useTrade } from '@/context/trade-data-provider';
 import { ArrowDown, ArrowUp } from 'phosphor-react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { Header } from '@/components/header';
+import { useState } from 'react';
 import { BankOperationDialog } from '@/components/bank-operation-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function DashboardPage() {
   const { settings, isLoading } = useTrade();
-  const router = useRouter();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [operationType, setOperationType] = useState<'deposit' | 'withdrawal'>('deposit');
 
@@ -23,15 +21,10 @@ export default function DashboardPage() {
     setOperationType(type);
     setIsDialogOpen(true);
   }
-
-  useEffect(() => {
-    if (!isLoading && !settings) {
-      router.replace('/');
-    }
-  }, [isLoading, settings, router]);
-
+  
   if (isLoading || !settings) {
-    // O componente loading.tsx cuidará da UI de carregamento
+    // The main layout now handles the loading state for the initial load.
+    // A skeleton loader will be shown via loading.tsx.
     return null;
   }
 
@@ -42,9 +35,7 @@ export default function DashboardPage() {
         setIsOpen={setIsDialogOpen} 
         operationType={operationType} 
     />
-    <div className="flex min-h-screen w-full flex-col">
-      <Header />
-      <main className="container mx-auto flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+    
         <StatsCards />
         <div className="grid grid-flow-row-dense gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
           <div className="xl:col-span-2">
@@ -73,8 +64,6 @@ export default function DashboardPage() {
             <PerformanceHistoryTable />
           </div>
         </div>
-      </main>
-    </div>
     </>
   );
 }
