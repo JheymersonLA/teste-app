@@ -3,7 +3,6 @@
 import { useTrade } from '@/context/trade-data-provider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bank, Crosshair, TrendUp, Percent, Spinner } from 'phosphor-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { useState, useEffect } from 'react';
 
 export function StatsCards() {
@@ -42,7 +41,6 @@ export function StatsCards() {
       value: `$ ${currentBank.toFixed(2)}`,
       icon: Bank,
       color: 'text-primary',
-      tooltip: true
     },
     {
       title: 'Valor de Entrada Diária',
@@ -66,61 +64,46 @@ export function StatsCards() {
     },
   ];
 
-  const renderTooltipContent = () => {
+  const renderBrlValue = () => {
     if (isLoadingRate) {
       return (
-        <div className="flex items-center gap-2">
-            <Spinner className="h-4 w-4 animate-spin" />
-            <span>Carregando cotação...</span>
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <Spinner className="h-3 w-3 animate-spin" />
+          <span>Carregando cotação...</span>
         </div>
-      )
+      );
     }
     if (exchangeRate) {
-        const convertedValue = currentBank * exchangeRate;
-        return (
-            <div className='text-center'>
-                <p>Cotação: <span className='font-bold'>R$ {exchangeRate.toFixed(2)}</span></p>
-                <p>Valor em Reais: <span className='font-bold'>R$ {convertedValue.toFixed(2)}</span></p>
-            </div>
-        )
+      const convertedValue = currentBank * exchangeRate;
+      return (
+        <p className="text-xs text-muted-foreground">
+          Aprox. <span className="font-semibold">R$ {convertedValue.toFixed(2)}</span>
+        </p>
+      );
     }
-    return <p>Não foi possível carregar a cotação.</p>
-  }
-
+    return (
+      <p className="text-xs text-destructive/80">Cotação indisponível</p>
+    );
+  };
 
   return (
-    <TooltipProvider>
-      <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-        {stats.map((stat) => {
-            const card = (
-                <Card key={stat.title}>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                    <stat.icon className={`h-5 w-5 text-muted-foreground ${stat.color}`} weight="duotone" />
-                    </CardHeader>
-                    <CardContent>
-                    <div className="text-2xl font-bold">{stat.value}</div>
-                    {stat.description && <p className="text-xs text-muted-foreground">{stat.description}</p>}
-                    </CardContent>
-                </Card>
-            )
-
-            if (stat.tooltip) {
-                return (
-                    <Tooltip key={stat.title}>
-                        <TooltipTrigger asChild>
-                            {card}
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            {renderTooltipContent()}
-                        </TooltipContent>
-                    </Tooltip>
-                )
-            }
-
-            return card;
-        })}
-      </div>
-    </TooltipProvider>
+    <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+      {stats.map((stat, index) => (
+        <Card key={stat.title}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+            <stat.icon className={`h-5 w-5 text-muted-foreground ${stat.color}`} weight="duotone" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stat.value}</div>
+            {index === 0 ? (
+                renderBrlValue()
+            ) : (
+                stat.description && <p className="text-xs text-muted-foreground">{stat.description}</p>
+            )}
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 }
