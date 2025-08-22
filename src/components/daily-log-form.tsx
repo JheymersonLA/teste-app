@@ -15,12 +15,14 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 
 const logSchema = z.object({
     date: z.date({
       required_error: 'A data é obrigatória.',
     }),
-    returnValue: z.coerce.number(),
+    resultType: z.enum(['gain', 'loss'], { required_error: 'Selecione Ganho ou Perda.' }),
+    resultValue: z.coerce.number().min(0, { message: 'O valor deve ser positivo.' }),
     entries: z.coerce.number().int().min(0, { message: 'Deve ser um número positivo.' }),
     wins: z.coerce.number().int().min(0, { message: 'Deve ser um número positivo.' }),
     losses: z.coerce.number().int().min(0, { message: 'Deve ser um número positivo.' }),
@@ -39,7 +41,8 @@ export function DailyLogForm() {
     resolver: zodResolver(logSchema),
     defaultValues: {
         date: new Date(),
-        returnValue: 0,
+        resultType: 'gain',
+        resultValue: 0,
         entries: 0,
         wins: 0,
         losses: 0,
@@ -47,9 +50,14 @@ export function DailyLogForm() {
   });
 
   async function onSubmit(data: LogFormValues) {
+    const returnValue = data.resultType === 'gain' ? data.resultValue : -data.resultValue;
+
     const success = await addRecord({
-        ...data,
         date: data.date.toISOString(),
+        returnValue: returnValue,
+        entries: data.entries,
+        wins: data.wins,
+        losses: data.losses,
     });
 
     if (success) {
@@ -59,7 +67,8 @@ export function DailyLogForm() {
           });
         form.reset({
             date: new Date(),
-            returnValue: 0,
+            resultType: 'gain',
+            resultValue: 0,
             entries: 0,
             wins: 0,
             losses: 0,
@@ -123,18 +132,52 @@ export function DailyLogForm() {
                 </FormItem>
               )}
             />
+            
             <FormField
-              control={form.control}
-              name="returnValue"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Resultado do Dia (R$)</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="Lucro ou prejuízo" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
+                control={form.control}
+                name="resultValue"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Resultado do Dia (R$)</FormLabel>
+                        <div className='flex items-center gap-4'>
+                            <FormField
+                                control={form.control}
+                                name="resultType"
+                                render={({ field }) => (
+                                    <FormItem className="space-y-3">
+                                    <FormControl>
+                                        <RadioGroup
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value}
+                                        className="flex space-x-2"
+                                        >
+                                        <FormItem className="flex items-center space-x-2 space-y-0">
+                                            <FormControl>
+                                            <RadioGroupItem value="gain" />
+                                            </FormControl>
+                                            <FormLabel className="font-normal">Ganho</FormLabel>
+                                        </FormItem>
+                                        <FormItem className="flex items-center space-x-2 space-y-0">
+                                            <FormControl>
+                                            <RadioGroupItem value="loss" />
+                                            </FormControl>
+                                            <FormLabel className="font-normal">Perda</FormLabel>
+                                        </FormItem>
+                                        </RadioGroup>
+                                    </FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormControl>
+                                <Input type="number" step="0.01" min="0" placeholder="Valor" {...field} />
+                            </FormControl>
+                        </div>
+                        <FormMessage />
+                    </FormItem>
+                )}
             />
+
             <div className="grid grid-cols-3 gap-4">
                 <FormField
                 control={form.control}
