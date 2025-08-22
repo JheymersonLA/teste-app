@@ -20,7 +20,7 @@ export function Header() {
     <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm md:px-6 z-50">
       <Link href="/dashboard" className="flex items-center gap-2 text-xl font-bold hover:text-primary transition-colors mr-4">
         <BarChart3 className="h-6 w-6" />
-        <span className="sr-only">TradeFlow</span>
+        <span className="font-bold text-lg">TradeFlow</span>
       </Link>
       <nav className="flex items-center gap-2">
         {links.map(link => (
