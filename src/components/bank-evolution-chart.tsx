@@ -31,7 +31,7 @@ export function BankEvolutionChart() {
 
   if (!settings || records.length === 0) {
     return (
-        <Card className="xl:col-span-2">
+        <Card className="xl:col-span-2 h-full">
         <CardHeader>
           <CardTitle>Evolução da Banca</CardTitle>
           <CardDescription>
@@ -46,15 +46,15 @@ export function BankEvolutionChart() {
   }
 
   return (
-    <Card className="xl:col-span-2">
+    <Card className="xl:col-span-2 h-full flex flex-col">
       <CardHeader>
         <CardTitle>Evolução da Banca</CardTitle>
         <CardDescription>
           Progresso do valor da sua banca ao longo do tempo.
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <ChartContainer config={{}} className="h-[300px] w-full">
+      <CardContent className="flex-1 pb-0">
+        <ChartContainer config={{}} className="h-full w-full">
             <ResponsiveContainer>
                 <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                     <defs>
