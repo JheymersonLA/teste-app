@@ -25,8 +25,8 @@ const logSchema = z.object({
     entries: z.coerce.number().int().min(0, { message: 'Deve ser um número positivo.' }),
     wins: z.coerce.number().int().min(0, { message: 'Deve ser um número positivo.' }),
     losses: z.coerce.number().int().min(0, { message: 'Deve ser um número positivo.' }),
-  }).refine(data => data.wins + data.losses <= data.entries, {
-    message: 'A soma de ganhos e perdas não pode exceder o total de entradas.',
+  }).refine(data => data.wins + data.losses === data.entries, {
+    message: 'A soma de ganhos e perdas deve ser igual ao total de entradas.',
     path: ['entries'],
   });
 
