@@ -99,7 +99,7 @@ export function SettingsDialog() {
               name="dailyEntryTarget"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Meta de Entrada Diária (%)</FormLabel>
+                  <FormLabel>Percentual de Entrada Diária (%)</FormLabel>
                   <FormControl>
                     <Input type="number" {...field} />
                   </FormControl>

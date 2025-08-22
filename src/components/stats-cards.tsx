@@ -20,7 +20,7 @@ export function StatsCards() {
       color: 'text-primary',
     },
     {
-      title: 'Meta de Entrada Diária',
+      title: 'Valor de Entrada Diária',
       value: `R$ ${dailyEntryTargetValue}`,
       description: `${settings.dailyEntryTarget}% da banca`,
       icon: Target,

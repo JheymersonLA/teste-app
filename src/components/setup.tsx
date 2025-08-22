@@ -61,7 +61,7 @@ export function Setup() {
                 name="dailyEntryTarget"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Meta de Entrada Diária (%)</FormLabel>
+                    <FormLabel>Percentual de Entrada Diária (%)</FormLabel>
                     <FormControl>
                       <Input type="number" placeholder="5" {...field} />
                     </FormControl>
