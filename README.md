@@ -12,7 +12,7 @@ O TradeFlow é uma aplicação web construída com **Next.js (App Router)**, **R
 - **Dashboard Principal:** Exibe cartões com estatísticas vitais, um gráfico da evolução da banca e o histórico de operações.
 - **Projeção de Ganhos:** Mostra uma tabela com a projeção de crescimento da banca para os próximos 90 dias com base em juros compostos sobre a meta diária.
 - **Calendário de Performance:** Visualização mensal onde os dias são coloridos de acordo com o resultado (ganho ou perda).
-- **Persistência de Dados:** Todas as informações do usuário (configurações e registros) são salvas localmente no `localStorage` do navegador.
+- **Persistência de Dados:** Todas as informações do usuário (configurações e registros) são salvas em um arquivo `data/database.json` no servidor, gerenciado por rotas de API do Next.js.
 
 ---
 

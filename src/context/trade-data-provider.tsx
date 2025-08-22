@@ -27,8 +27,7 @@ interface TradeDataContextType {
 
 const TradeDataContext = createContext<TradeDataContextType | undefined>(undefined);
 
-const SETTINGS_KEY = 'tradeflow_settings';
-const RECORDS_KEY = 'tradeflow_records';
+
 
 export function TradeDataProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<UserSettings | null>(null);
@@ -36,78 +35,117 @@ export function TradeDataProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setIsLoading(true);
-    try {
-      const savedSettings = localStorage.getItem(SETTINGS_KEY);
-      if (savedSettings) {
-        setSettings(JSON.parse(savedSettings));
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch('/api/data');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setSettings(data.settings);
+        const sortedRecords = (data.records || []).sort((a: DailyRecord, b: DailyRecord) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setRecords(sortedRecords);
+      } catch (error) {
+        console.error("Failed to load data from API", error);
+      } finally {
+        setIsLoading(false);
       }
-
-      const savedRecords = localStorage.getItem(RECORDS_KEY);
-      if (savedRecords) {
-        const parsedRecords = JSON.parse(savedRecords) as DailyRecord[];
-        parsedRecords.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        setRecords(parsedRecords);
-      }
-    } catch (error) {
-      console.error("Failed to load data from localStorage", error);
-    } finally {
-      setIsLoading(false);
-    }
+    };
+    loadData();
   }, []);
 
-  const saveSettings = useCallback((newSettings: UserSettings) => {
+  const saveSettings = useCallback(async (newSettings: UserSettings) => {
     try {
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings));
+      const response = await fetch('/api/data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ type: 'settings', payload: newSettings }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       setSettings(newSettings);
     } catch (error) {
-      console.error("Failed to save settings to localStorage", error);
+      console.error("Failed to save settings to API", error);
     }
   }, []);
 
   const addRecord = useCallback(async (newRecord: Omit<DailyRecord, 'id'>): Promise<boolean> => {
     try {
-      const existingRecords = JSON.parse(localStorage.getItem(RECORDS_KEY) || '[]') as DailyRecord[];
-      
-      const recordExists = existingRecords.some(r => r.date.split('T')[0] === newRecord.date.split('T')[0]);
+      const recordWithId = { ...newRecord, id: uuidv4() };
+
+      // Check if record for this date already exists (client-side check for immediate feedback)
+      const recordExists = records.some(r => r.date.split('T')[0] === recordWithId.date.split('T')[0]);
       if (recordExists) {
         console.warn("Record for this date already exists");
         return false;
       }
-      
-      const recordWithId = { ...newRecord, id: uuidv4() };
-      const updatedRecords = [...existingRecords, recordWithId];
-      localStorage.setItem(RECORDS_KEY, JSON.stringify(updatedRecords));
+
+      const response = await fetch('/api/data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ type: 'record', payload: recordWithId }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       setRecords(prevRecords => 
         [...prevRecords, recordWithId].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       );
       return true;
     } catch (error) {
-        console.error("Failed to add record to localStorage", error);
+        console.error("Failed to add record via API", error);
         return false;
     }
-  }, []);
+  }, [records]);
 
   const deleteRecord = useCallback(async (id: string) => {
     try {
-      const updatedRecords = records.filter((record) => record.id !== id);
-      localStorage.setItem(RECORDS_KEY, JSON.stringify(updatedRecords));
-      setRecords(updatedRecords);
+      const response = await fetch('/api/data', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ type: 'record', id }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      setRecords(prevRecords => prevRecords.filter(record => record.id !== id));
     } catch (error) {
-      console.error("Failed to delete record from localStorage", error);
+      console.error("Failed to delete record via API", error);
     }
-  }, [records]);
+  }, []);
 
   const resetData = useCallback(async () => {
     setIsLoading(true);
     try {
-      localStorage.removeItem(RECORDS_KEY);
-      localStorage.removeItem(SETTINGS_KEY);
+      const response = await fetch('/api/data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ type: 'reset' }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       setSettings(null);
       setRecords([]);
     } catch (error) {
-      console.error("Failed to reset data in localStorage", error);
+      console.error("Failed to reset data via API", error);
     } finally {
         setIsLoading(false);
     }

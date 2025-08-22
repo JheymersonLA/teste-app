@@ -1,0 +1,17 @@
+{
+  "settings": {
+    "initialBank": 20,
+    "dailyEntryTarget": 5,
+    "dailyProfitTarget": 10
+  },
+  "records": [
+    {
+      "date": "2025-08-22T17:34:09.764Z",
+      "returnValue": 4.2,
+      "entries": 15,
+      "wins": 10,
+      "losses": 5,
+      "id": "2a5c915e-c85a-4cef-b930-73a8e09e14f7"
+    }
+  ]
+}
