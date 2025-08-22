@@ -65,11 +65,11 @@ export function BankEvolutionChart() {
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis dataKey="date" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} tickLine={false} axisLine={false} />
-                    <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} tickLine={false} axisLine={false} tickFormatter={(value) => `R$${value}`} />
+                    <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
                     <ChartTooltip 
                         cursor={{fill: 'hsl(var(--accent))', opacity: 0.1}}
                         content={<ChartTooltipContent 
-                            formatter={(value) => `R$ ${Number(value).toFixed(2)}`}
+                            formatter={(value) => `$ ${Number(value).toFixed(2)}`}
                             labelClassName="font-bold"
                             indicator="dot"
                         />} 

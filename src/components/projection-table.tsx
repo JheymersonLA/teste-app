@@ -74,8 +74,8 @@ export function ProjectionTable() {
             <TableRow>
               <TableHead className="text-center">Dia</TableHead>
               <TableHead>Data</TableHead>
-              <TableHead className="text-right">Lucro do Dia (R$)</TableHead>
-              <TableHead className="text-right">Banca Projetada (R$)</TableHead>
+              <TableHead className="text-right">Lucro do Dia ($)</TableHead>
+              <TableHead className="text-right">Banca Projetada ($)</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

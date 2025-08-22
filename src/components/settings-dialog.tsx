@@ -86,7 +86,7 @@ export function SettingsDialog() {
               name="initialBank"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Valor Inicial da Banca (R$)</FormLabel>
+                  <FormLabel>Valor Inicial da Banca ($)</FormLabel>
                   <FormControl>
                     <Input type="number" {...field} />
                   </FormControl>

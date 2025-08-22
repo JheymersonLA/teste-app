@@ -55,7 +55,7 @@ export function PerformanceHistoryTable() {
           <TableHeader>
             <TableRow>
               <TableHead>Data</TableHead>
-              <TableHead className="text-right">Resultado (R$)</TableHead>
+              <TableHead className="text-right">Resultado ($)</TableHead>
               <TableHead className="text-center">Entradas</TableHead>
               <TableHead className="text-center">Ganhos</TableHead>
               <TableHead className="text-center">Perdas</TableHead>
@@ -70,7 +70,7 @@ export function PerformanceHistoryTable() {
               <TableRow key={record.id}>
                 <TableCell className="font-medium">{format(parseISO(record.date), 'dd/MM/yyyy', { locale: ptBR })}</TableCell>
                 <TableCell className={`text-right font-semibold ${record.returnValue >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {record.returnValue >= 0 ? `+R$${record.returnValue.toFixed(2)}` : `-R$${Math.abs(record.returnValue).toFixed(2)}`}
+                  {record.returnValue >= 0 ? `+$${record.returnValue.toFixed(2)}` : `-$${Math.abs(record.returnValue).toFixed(2)}`}
                 </TableCell>
                 <TableCell className="text-center">{record.entries}</TableCell>
                 <TableCell className="text-center">{record.wins}</TableCell>

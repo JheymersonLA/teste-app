@@ -151,7 +151,7 @@ export function DailyLogForm() {
                   name="resultValue"
                   render={({ field }) => (
                       <FormItem>
-                      <FormLabel>Resultado do Dia (R$)</FormLabel>
+                      <FormLabel>Resultado do Dia ($)</FormLabel>
                           <div className='flex items-center gap-2'>
                             <FormField
                                   control={form.control}

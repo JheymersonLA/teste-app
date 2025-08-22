@@ -48,7 +48,7 @@ export function Setup() {
                 name="initialBank"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Valor Inicial da Banca (R$)</FormLabel>
+                    <FormLabel>Valor Inicial da Banca ($)</FormLabel>
                     <FormControl>
                       <Input type="number" placeholder="1000" {...field} />
                     </FormControl>
