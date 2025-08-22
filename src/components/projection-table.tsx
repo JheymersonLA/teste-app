@@ -65,7 +65,7 @@ export function ProjectionTable() {
       <CardHeader>
         <CardTitle>Projeção de Ganhos (Próximos 90 Dias)</CardTitle>
         <CardDescription>
-          Estimativa de crescimento da sua banca com base na sua meta de lucro diário de {settings.dailyProfitTarget}%.
+          Estimativa de crescimento da sua banca com base na sua meta de lucro diário de {settings.dailyProfitTarget}%. Os cálculos são feitos com juros compostos sobre a banca atual.
         </CardDescription>
       </CardHeader>
       <CardContent>

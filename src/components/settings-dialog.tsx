@@ -41,7 +41,7 @@ const settingsSchema = z.object({
 type SettingsFormValues = z.infer<typeof settingsSchema>;
 
 export function SettingsDialog() {
-  const { settings, saveSettings, resetData } = useTrade();
+  const { settings, saveSettings } = useTrade();
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
 
@@ -59,15 +59,10 @@ export function SettingsDialog() {
     setIsOpen(false);
   }
 
-  const handleReset = () => {
-    resetData();
-    setIsOpen(false);
-  }
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" aria-label="Abrir configurações">
           <Gear className="h-5 w-5" />
           <span className="sr-only">Configurações</span>
         </Button>
@@ -120,29 +115,7 @@ export function SettingsDialog() {
                 </FormItem>
               )}
             />
-            <DialogFooter className="!mt-8 gap-2 sm:!justify-between">
-                <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                        <Button variant="destructive" type="button">
-                            <Trash className="mr-2 h-4 w-4" />
-                            Resetar Dados
-                        </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                        <AlertDialogTitle>Você tem certeza absoluta?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Essa ação não pode ser desfeita. Isso irá apagar permanentemente
-                            todos os seus dados, incluindo configurações e registros diários.
-                        </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleReset}>Continuar</AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
-
+            <DialogFooter>
                 <Button type="submit">Salvar alterações</Button>
             </DialogFooter>
           </form>

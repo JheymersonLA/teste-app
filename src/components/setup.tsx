@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useTrade } from '@/context/trade-data-provider';
+import { ChartLineUp } from 'phosphor-react';
 
 const setupSchema = z.object({
   initialBank: z.coerce.number().positive({ message: 'O valor deve ser positivo.' }),
@@ -37,8 +38,11 @@ export function Setup() {
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Bem-vindo</CardTitle>
-          <CardDescription>Configure sua banca para começar a gerenciar suas operações.</CardDescription>
+            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <ChartLineUp weight="bold" className="h-6 w-6" />
+            </div>
+          <CardTitle className="text-2xl font-bold">Bem-vindo ao TradeFlow</CardTitle>
+          <CardDescription>Para começar, configure sua banca e suas metas diárias. Você poderá ajustar esses valores depois.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>

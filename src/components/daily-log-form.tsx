@@ -149,7 +149,7 @@ export function DailyLogForm() {
                                         type="button"
                                         variant={resultTypeField.value === 'gain' ? 'default' : 'outline'}
                                         onClick={() => resultTypeField.onChange('gain')}
-                                        className={resultTypeField.value === 'gain' ? 'bg-green-600 hover:bg-green-700' : ''}
+                                        className={cn(resultTypeField.value === 'gain' ? 'bg-green-600 hover:bg-green-700' : '', 'h-9')}
                                     >
                                         Ganho
                                     </Button>
@@ -157,6 +157,7 @@ export function DailyLogForm() {
                                         type="button"
                                         variant={resultTypeField.value === 'loss' ? 'destructive' : 'outline'}
                                         onClick={() => resultTypeField.onChange('loss')}
+                                        className="h-9"
                                     >
                                         Perda
                                     </Button>
@@ -228,7 +229,7 @@ export function DailyLogForm() {
         />
         <Button type="submit" className="w-full mt-auto">
             <PlusCircle className="mr-2 h-4 w-4" />
-            Adicionar Registro
+            Adicionar Registro de Trade
         </Button>
         </form>
     </Form>

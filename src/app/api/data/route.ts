@@ -2,6 +2,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { NextRequest, NextResponse } from 'next/server';
 import type { DailyRecord, UserSettings } from '@/lib/types';
+import { isSameDay, parseISO } from 'date-fns';
 
 const DATA_FILE_PATH = path.join(process.cwd(), 'data', 'database.json');
 
@@ -42,7 +43,10 @@ export async function POST(req: NextRequest) {
     } else if (type === 'record') {
       // Prevent duplicate trade records for the same day
       if(payload.type === 'trade') {
-        const recordExists = data.records.some((r: DailyRecord) => r.type === 'trade' && r.date.split('T')[0] === payload.date.split('T')[0]);
+        const newRecordDate = parseISO(payload.date);
+        const recordExists = data.records.some((r: DailyRecord) => 
+            r.type === 'trade' && isSameDay(parseISO(r.date), newRecordDate)
+        );
         if (recordExists) {
             return NextResponse.json({ message: 'Record for this date already exists' }, { status: 409 });
         }

@@ -16,6 +16,7 @@ export function TradeCalendar() {
     const lossDays: Date[] = [];
 
     records.forEach(record => {
+      if(record.type !== 'trade') return;
       const recordDate = parseISO(record.date);
       if (record.returnValue >= 0) {
         gainDays.push(recordDate);
@@ -48,7 +49,7 @@ export function TradeCalendar() {
       <CardHeader>
         <CardTitle>Calendário de Performance</CardTitle>
         <CardDescription>
-          Visualize seus resultados diários. Verde para ganhos, vermelho para perdas.
+          Visualize seus resultados de trade. Verde para dias de ganho e vermelho para dias de perda.
         </CardDescription>
       </CardHeader>
       <CardContent>

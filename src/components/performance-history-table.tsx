@@ -65,7 +65,7 @@ export function PerformanceHistoryTable() {
     <Card>
       <CardHeader>
         <CardTitle>Histórico de Operações</CardTitle>
-        <CardDescription>Veja e gerencie seus registros diários.</CardDescription>
+        <CardDescription>Acompanhe todas as suas movimentações e resultados de trade.</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
