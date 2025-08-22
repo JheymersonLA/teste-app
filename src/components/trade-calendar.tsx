@@ -6,6 +6,7 @@ import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { parseISO } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export function TradeCalendar() {
   const { records } = useTrade();
@@ -50,7 +51,7 @@ export function TradeCalendar() {
           Visualize seus resultados diários. Verde para ganhos, vermelho para perdas.
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex justify-center">
+      <CardContent>
         <style>{`
           .rdp-day_selected, .rdp-day_selected:focus-visible, .rdp-day_selected:hover {
             background-color: hsl(var(--accent));
@@ -58,8 +59,9 @@ export function TradeCalendar() {
           }
         `}</style>
         <DayPicker
+          locale={ptBR}
           showOutsideDays
-          className="p-0"
+          className="p-0 w-full"
           classNames={{
             months: 'flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0',
             month: 'space-y-4 w-full',
