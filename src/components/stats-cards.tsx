@@ -2,9 +2,10 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bank, Crosshair, TrendUp, Percent, Spinner } from 'phosphor-react';
-import { useState, useEffect } from 'react';
+import { Bank, Crosshair, TrendUp, Percent, Spinner, ArrowClockwise } from 'phosphor-react';
+import { useState, useEffect, useCallback } from 'react';
 import type { UserSettings } from '@/lib/types';
+import { Button } from './ui/button';
 
 interface StatsCardsProps {
     settings: UserSettings;
@@ -16,25 +17,29 @@ export function StatsCards({ settings, currentBank, winRate }: StatsCardsProps) 
   const [exchangeRate, setExchangeRate] = useState<number | null>(null);
   const [isLoadingRate, setIsLoadingRate] = useState(true);
 
-  useEffect(() => {
-    async function fetchExchangeRate() {
-      setIsLoadingRate(true);
-      try {
-        const response = await fetch('/api/exchange-rate');
-        const data = await response.json();
-        if (response.ok) {
-          setExchangeRate(data.rate);
-        } else {
-          console.error(data.message);
-        }
-      } catch (error) {
-        console.error("Failed to fetch exchange rate from component", error);
-      } finally {
-        setIsLoadingRate(false);
+  const fetchExchangeRate = useCallback(async () => {
+    setIsLoadingRate(true);
+    try {
+      // Adding a cache-busting query param to ensure fresh data
+      const response = await fetch(`/api/exchange-rate?t=${new Date().getTime()}`);
+      const data = await response.json();
+      if (response.ok) {
+        setExchangeRate(data.rate);
+      } else {
+        console.error(data.message);
+        setExchangeRate(null);
       }
+    } catch (error) {
+      console.error("Failed to fetch exchange rate from component", error);
+      setExchangeRate(null);
+    } finally {
+      setIsLoadingRate(false);
     }
-    fetchExchangeRate();
   }, []);
+
+  useEffect(() => {
+    fetchExchangeRate();
+  }, [fetchExchangeRate]);
 
   if (!settings) return null;
 
@@ -82,13 +87,25 @@ export function StatsCards({ settings, currentBank, winRate }: StatsCardsProps) 
     if (exchangeRate) {
       const convertedValue = currentBank * exchangeRate;
       return (
-        <p className="text-xs text-muted-foreground">
-          Aprox. <span className="font-semibold">R$ {convertedValue.toFixed(2)}</span>
-        </p>
+        <div className="flex items-center gap-2">
+            <p className="text-xs text-muted-foreground">
+                Aprox. <span className="font-semibold">R$ {convertedValue.toFixed(2)}</span>
+            </p>
+            <Button variant="ghost" size="icon" className="h-5 w-5" onClick={fetchExchangeRate}>
+                <ArrowClockwise className="h-3 w-3 text-muted-foreground" />
+                <span className="sr-only">Recarregar cotação</span>
+            </Button>
+        </div>
       );
     }
     return (
-      <p className="text-xs text-destructive/80">Cotação indisponível</p>
+        <div className="flex items-center gap-2">
+            <p className="text-xs text-destructive/80">Cotação indisponível</p>
+            <Button variant="ghost" size="icon" className="h-5 w-5" onClick={fetchExchangeRate}>
+                <ArrowClockwise className="h-3 w-3 text-muted-foreground" />
+                <span className="sr-only">Tentar recarregar cotação</span>
+            </Button>
+        </div>
     );
   };
 
