@@ -97,3 +97,24 @@ export async function deleteRecord(id: string): Promise<{ success: boolean, mess
         return { success: false, message: error.message };
     }
 }
+
+export async function importData(jsonContent: string): Promise<{ success: boolean; message?: string }> {
+    try {
+        const parsedData = JSON.parse(jsonContent);
+
+        // Basic validation
+        if (typeof parsedData !== 'object' || parsedData === null || (!('settings' in parsedData) || !('records' in parsedData))) {
+            return { success: false, message: 'Arquivo JSON inválido. A estrutura esperada é { "settings": {...}, "records": [...] }.' };
+        }
+
+        await writeData(parsedData);
+        revalidatePath('/', 'layout'); // Revalidate everything
+        return { success: true };
+    } catch (error: any) {
+        console.error("Failed to import data:", error);
+        if (error instanceof SyntaxError) {
+            return { success: false, message: 'O arquivo fornecido não é um JSON válido.' };
+        }
+        return { success: false, message: 'Ocorreu um erro ao importar os dados.' };
+    }
+}

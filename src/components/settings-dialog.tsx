@@ -27,15 +27,17 @@ import {
     AlertDialogTrigger,
   } from "@/components/ui/alert-dialog"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Gear, Trash } from 'phosphor-react';
-import { useState, useEffect } from 'react';
+import { Gear, Trash, UploadSimple, DownloadSimple } from 'phosphor-react';
+import { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from './ui/separator';
 import type { UserSettings } from '@/lib/types';
 import { useRouter } from 'next/navigation';
-import { resetData, saveSettings } from '@/app/actions/trade-actions';
+import { resetData, saveSettings, importData } from '@/app/actions/trade-actions';
 import { buttonVariants } from './ui/button';
 import { cn } from '@/lib/utils';
+import { loadData } from '@/lib/data-loader';
+
 
 const settingsSchema = z.object({
   initialBank: z.coerce.number().positive({ message: 'O valor deve ser positivo.' }),
@@ -51,8 +53,10 @@ interface SettingsDialogProps {
 
 export function SettingsDialog({ settings }: SettingsDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
@@ -84,6 +88,90 @@ export function SettingsDialog({ settings }: SettingsDialogProps) {
     setIsOpen(false);
     router.refresh();
   }
+
+  const handleExport = async () => {
+    try {
+        const response = await fetch('/api/data');
+        if (!response.ok) {
+            throw new Error('Falha ao buscar dados para exportação.');
+        }
+        const data = await response.json();
+        const jsonString = JSON.stringify(data, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'database.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast({
+            title: "Exportação concluída!",
+            description: "O arquivo database.json foi baixado.",
+        });
+    } catch (error: any) {
+        toast({
+            variant: "destructive",
+            title: "Erro na Exportação",
+            description: error.message || "Não foi possível exportar os dados.",
+        });
+    }
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/json') {
+        toast({
+            variant: "destructive",
+            title: "Arquivo Inválido",
+            description: "Por favor, selecione um arquivo .json.",
+        });
+        return;
+    }
+
+    setIsImporting(true);
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const content = e.target?.result as string;
+        const result = await importData(content);
+
+        if (result.success) {
+            toast({
+                title: "Importação Concluída!",
+                description: "Seus dados foram restaurados com sucesso.",
+            });
+            setIsOpen(false);
+            router.refresh();
+        } else {
+            toast({
+                variant: "destructive",
+                title: "Erro na Importação",
+                description: result.message || "Não foi possível importar o arquivo.",
+            });
+        }
+        setIsImporting(false);
+    };
+    reader.onerror = () => {
+        toast({
+            variant: "destructive",
+            title: "Erro de Leitura",
+            description: "Não foi possível ler o arquivo selecionado.",
+        });
+        setIsImporting(false);
+    }
+    reader.readAsText(file);
+
+    // Reset file input
+    event.target.value = '';
+  };
+
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -148,10 +236,23 @@ export function SettingsDialog({ settings }: SettingsDialogProps) {
         </Form>
         <Separator />
         <div className="space-y-4">
+            <h4 className="text-sm font-medium">Backup e Restauração</h4>
+            <div className="flex flex-col sm:flex-row gap-2">
+                <Button variant="outline" onClick={handleExport} className="w-full">
+                    <DownloadSimple className="mr-2 h-4 w-4" /> Exportar Dados
+                </Button>
+                <input type="file" ref={fileInputRef} onChange={handleFileImport} accept=".json" className="hidden" />
+                <Button variant="outline" onClick={handleImportClick} className="w-full" disabled={isImporting}>
+                    <UploadSimple className="mr-2 h-4 w-4" /> {isImporting ? "Importando..." : "Importar Dados"}
+                </Button>
+            </div>
+        </div>
+        <Separator />
+        <div className="space-y-4">
             <div className="space-y-1">
                 <h4 className="text-sm font-medium">Zona de Perigo</h4>
                 <p className="text-sm text-muted-foreground">
-                    Essas ações são destrutivas e não podem ser desfeitas.
+                    Essa ação é destrutiva e não pode ser desfeita.
                 </p>
             </div>
              <AlertDialog>
