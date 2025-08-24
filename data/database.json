@@ -1,27 +1,4 @@
 {
-  "settings": {
-    "initialBank": 20,
-    "dailyEntryTarget": 5,
-    "dailyProfitTarget": 10
-  },
-  "records": [
-    {
-      "type": "trade",
-      "date": "2025-08-22T03:00:00.000Z",
-      "returnValue": 4.2,
-      "entries": 15,
-      "wins": 10,
-      "losses": 5,
-      "id": "06b92235-31ce-43e0-b328-c403f40a804c"
-    },
-    {
-      "type": "trade",
-      "date": "2025-08-23T03:00:00.000Z",
-      "returnValue": 3.04,
-      "entries": 20,
-      "wins": 12,
-      "losses": 8,
-      "id": "3164ba84-4b3a-4495-a2cc-a34f9da99ea5"
-    }
-  ]
+  "settings": null,
+  "records": []
 }
